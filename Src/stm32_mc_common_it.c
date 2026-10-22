@@ -33,6 +33,7 @@
 #include "stm32g4xx_hal.h"
 #include "stm32g4xx.h"
 #include "mcp_config.h"
+#include "main.h"
 
 /* USER CODE BEGIN Includes */
 
@@ -53,6 +54,7 @@
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 bool bdmaActivTc = false;
+u32 SystemCounter;
 
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
@@ -196,11 +198,10 @@ static uint8_t SystickDividerCounter = SYSTICK_DIVIDER;
   {
     /* Nothing to do */
   }
-  /* USER CODE BEGIN SysTick_IRQn 1 */
+	
+  SystemCounter++;
 
-  /* USER CODE END SysTick_IRQn 1 */
-
-    MC_RunMotorControlTasks();
+	MC_RunMotorControlTasks();
 
   /* USER CODE BEGIN SysTick_IRQn 2 */
 
