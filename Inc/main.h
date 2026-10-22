@@ -45,31 +45,22 @@ extern "C" {
 #include "stm32g4xx_ll_gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
-/* USER CODE BEGIN Includes */
-
-/* USER CODE END Includes */
-
 /* Exported types ------------------------------------------------------------*/
-/* USER CODE BEGIN ET */
+typedef int32_t  s32;
+typedef int16_t s16;
+typedef int8_t  s8;
 
-/* USER CODE END ET */
+typedef uint32_t  u32;
+typedef uint16_t u16;
+typedef uint8_t  u8;
+
+
+extern u32 SystemCounter;
 
 /* Exported constants --------------------------------------------------------*/
-/* USER CODE BEGIN EC */
-
-/* USER CODE END EC */
-
 /* Exported macro ------------------------------------------------------------*/
-/* USER CODE BEGIN EM */
-
-/* USER CODE END EM */
-
 /* Exported functions prototypes ---------------------------------------------*/
 void Error_Handler(void);
-
-/* USER CODE BEGIN EFP */
-
-/* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
 #define M1_PWM_UL_Pin LL_GPIO_PIN_13
@@ -109,10 +100,6 @@ void Error_Handler(void);
 #define UART_RX_GPIO_Port GPIOB
 #define M1_BEMF_DIVIDER_Pin LL_GPIO_PIN_5
 #define M1_BEMF_DIVIDER_GPIO_Port GPIOB
-
-/* USER CODE BEGIN Private defines */
-
-/* USER CODE END Private defines */
 
 #ifdef __cplusplus
 }
