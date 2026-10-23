@@ -193,7 +193,7 @@
  <#if Motor == 1>
   <#list ADCMap as ADCItem>
      <#if ADCItem.Sector==sector>
-       <#if config="IP">
+       <#if config=="IP">
          <#return _first_word(ADCItem[phase])>
        <#else>
          <#return getADCChannel (_first_word(ADCItem[phase]),_last_word(ADCItem[phase]))>
@@ -203,7 +203,7 @@
  <#elseif Motor==2>
   <#list ADCMap as ADCItem>
      <#if ADCItem.Sector==sector>
-       <#if config="IP">
+       <#if config=="IP">
          <#return _first_word(ADCItem[phase])>
        <#else>
          <#return getADCChannel (_first_word(ADCItem[phase]),_last_word(ADCItem[phase]))>

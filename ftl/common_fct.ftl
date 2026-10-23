@@ -27,10 +27,10 @@
         ] >
       <#if motor == "M1" > 
         <#if !aux > <#assign entry = MC.M1_SPEED_SENSOR> <#else> 
-        <#assign entry = MC.AUXILIARY_SPEED_MEASUREMENT_SELECTION > </#if>
+        <#assign entry = MC.M1_AUXILIARY_SPEED_SENSOR > </#if>
       <#else>
         <#if !aux > <#assign entry = MC.M2_SPEED_SENSOR> <#else> 
-        <#assign entry = MC.AUXILIARY_SPEED_MEASUREMENT_SELECTION2 > </#if>
+        <#assign entry = MC.M2_AUXILIARY_SPEED_SENSOR > </#if>
       </#if>
       <#list SENSORS as sensor >
         <#if entry?contains(sensor.name) >
@@ -103,7 +103,11 @@
       <#if MC.M1_DISCONTINUOUS_PWM > <#local result+="|DISCONTINUOUS_PWM_FLAG"> </#if>
       <#if MC.MOTOR_PROFILER==true> <#local result+="|PROFILER_FLAG"> </#if>
       <#if MC.DBG_MCU_LOAD_MEASURE > <#local result+="|DBG_MCU_LOAD_MEASURE_FLAG"> </#if>
-      <#if MC.M1_DBG_OPEN_LOOP_ENABLE >   <#local result+="|DBG_OPEN_LOOP_FLAG">  </#if>    
+      <#if MC.M1_DBG_OPEN_LOOP_ENABLE >   <#local result+="|DBG_OPEN_LOOP_FLAG">  </#if>
+      <#if MC.M1_IPD_STARTUP >   <#local result+="|IPD_STARTUP_FLAG">  </#if>
+      <#if MC.M1_CURRENT_MONITOR_READING > <#local result+="|CURRENT_MONITOR_READING_FLAG">  </#if>
+      <#if MC.M1_LOW_SIDE_SIGNALS_ENABLING == "LS_PWM_TIMER" > <#local result+="|QUASI_SYNC_FLAG">  </#if>
+      
     <#else> 
       <#if MC.M2_OVERMODULATION >  <#local result+="|OVERMODULATION_FLAG"> </#if> 
       <#if MC.M2_DISCONTINUOUS_PWM > <#local result+="|DISCONTINUOUS_PWM_FLAG"> </#if>
@@ -222,6 +226,15 @@ Useful for debug
     <#return 1 >
 </#function>
 
+<#function Fx_TIM_Div_hso TimFreq PWMFreq>
+    <#list [1,2,3,4,5] as divider>
+    <#-- (PWM_PERIOD_CYCLES*SQRT3FACTOR)/16384u must feet in 16 bits with SQRT3FACTOR=0xDDB4 -->
+       <#if (TimFreq/(PWMFreq*divider))/2 < 65535 >
+            <#return divider >
+        </#if>
+    </#list>
+    <#return 1 >
+</#function>
 <#assign SYSCLKFreq = RCC.get("SYSCLKFreq_VALUE")?number>
 
 <#if CondFamily_STM32F4 || CondFamily_STM32H5>
@@ -243,9 +256,19 @@ Useful for debug
 <#if CondFamily_STM32G4>
 <#assign ADV_TIM_CLKFreq = RCC.get("APB2TimFreq_Value")?number> <#-- Advanced timers are all on APB2 -->
 <#assign ADV_TIM_CLKFreq2 = RCC.get("APB2TimFreq_Value")?number>
+  <#if MC.M1_SPEED_SENSOR == "HSO" || MC.M1_SPEED_SENSOR == "ZEST">
+    <#assign TimerDivider = Fx_TIM_Div_hso(ADV_TIM_CLKFreq,(MC.M1_PWM_FREQUENCY)?number) >
+    <#assign TimerDivider2 = Fx_TIM_Div_hso(ADV_TIM_CLKFreq2,(MC.M2_PWM_FREQUENCY)?number) >
+  <#else>
 <#assign TimerDivider = Fx_TIM_Div(ADV_TIM_CLKFreq,(MC.M1_PWM_FREQUENCY)?number) >
 <#assign TimerDivider2 = Fx_TIM_Div(ADV_TIM_CLKFreq2,(MC.M2_PWM_FREQUENCY)?number) >
+  </#if><#-- MC.M1_SPEED_SENSOR == "HSO" || MC.M1_SPEED_SENSOR == "ZEST" -->
 </#if><#-- CondFamily_STM32G4 -->
+
+<#if CondFamily_STM32G0>
+<#assign ADV_TIM_CLKFreq = RCC.get("TIM1Freq_Value")?number> <#-- TIM1 only candidate, can be hardcoded -->
+<#assign TimerDivider = Fx_TIM_Div(ADV_TIM_CLKFreq,(MC.M1_PWM_FREQUENCY)?number) >
+</#if><#-- CondFamily_STM32G0 -->
 
 <#if CondFamily_STM32H7 >
 <#assign ADV_TIM_CLKFreq = RCC.get("APB2Freq_Value")?number>

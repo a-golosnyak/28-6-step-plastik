@@ -9,7 +9,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2024 STMicroelectronics.
+  * <h2><center>&copy; Copyright (c) 2026 STMicroelectronics.
   * All rights reserved.</center></h2>
   *
   * This software component is licensed by ST under Ultimate Liberty license
@@ -37,10 +37,9 @@
 #define APB1TIM_FREQ                     170000000uL
 
 /*************************  IRQ Handler Mapping  *********************/
-#define TIMx_UP_M1_IRQHandler            TIM1_UP_TIM16_IRQHandler
-
 #define TIMx_BRK_M1_IRQHandler           TIM1_BRK_TIM15_IRQHandler
-#define BEMF_READING_IRQHandler          ADC1_2_IRQHandler
+#define BEMF_ADC1_2_READING_IRQHandler   ADC1_2_IRQHandler
+
 #define PERIOD_COMM_IRQHandler           TIM2_IRQHandler
 
 #define ADC_TRIG_CONV_LATENCY_CYCLES     3.5
@@ -54,4 +53,4 @@
 
 #endif /*PARAMETERS_CONVERSION_G4XX_H*/
 
-/******************* (C) COPYRIGHT 2024 STMicroelectronics *****END OF FILE****/
+/******************* (C) COPYRIGHT 2026 STMicroelectronics *****END OF FILE****/

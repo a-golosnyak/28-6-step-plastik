@@ -9,7 +9,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2024 STMicroelectronics.
+  * <h2><center>&copy; Copyright (c) 2026 STMicroelectronics.
   * All rights reserved.</center></h2>
   *
   * This software component is licensed by ST under Ultimate Liberty license
@@ -23,7 +23,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "mc_math.h"
-#include "speed_ctrl.h"
+#include "speed_duty_ctrl.h"
 #include "mc_interface.h"
 #include "motorcontrol.h"
 
@@ -33,7 +33,22 @@
   * @{
   */
 
-/** @addtogroup CAI
+/** @addtogroup ConvFOC
+  * @{
+  */
+
+/** @addtogroup	MCCockpit
+  * @{
+  */
+
+   /** @defgroup MCCtrlAPI Motor Control API
+  *
+  * @brief
+  *
+  * @{
+  */
+
+/** @addtogroup	MCCtrlAPI
   * @{
   */
 
@@ -134,7 +149,7 @@ __weak void MCI_ExecSpeedRamp_F(MCI_Handle_t *pHandle, const float_t FinalSpeed,
   else
   {
 #endif
-    if (FinalSpeed * pHandle->pSTC->SpeedRefUnitExt >= 0)
+    if ((FinalSpeed * (float_t)pHandle->pSDC->SpeedRefUnitExt) >= 0.0f)
     {
       float_t hFinalSpeed = ((FinalSpeed * (float_t)SPEED_UNIT) / (float_t)U_RPM);
       MCI_ExecSpeedRamp(pHandle, (int16_t)hFinalSpeed, hDurationms);
@@ -328,7 +343,7 @@ __weak void MCI_FaultProcessing(MCI_Handle_t *pHandle, uint16_t hSetErrors, uint
   {
 #endif
     /* Set current errors */
-    pHandle->CurrentFaults = (pHandle->CurrentFaults | hSetErrors ) & (~hResetErrors);
+    pHandle->CurrentFaults = (pHandle->CurrentFaults | hSetErrors) & (~hResetErrors);
     pHandle->PastFaults |= hSetErrors;
 #ifdef NULL_PTR_CHECK_MC_INT
   }
@@ -352,16 +367,16 @@ __weak void MCI_ExecBufferedCommands(MCI_Handle_t *pHandle)
   else
   {
 #endif
-    if ( pHandle->CommandState == MCI_COMMAND_NOT_ALREADY_EXECUTED )
+    if (pHandle->CommandState == MCI_COMMAND_NOT_ALREADY_EXECUTED)
     {
       bool commandHasBeenExecuted = false;
       switch (pHandle->lastCommand)
       {
         case MCI_CMD_EXECSPEEDRAMP:
         {
-          pHandle->pSixStepVars->bDriveInput = INTERNAL;
-          STC_SetControlMode(pHandle->pSTC, MCM_SPEED_MODE);
-          commandHasBeenExecuted = STC_ExecRamp(pHandle->pSTC, pHandle->hFinalSpeed, pHandle->hDurationms);
+          SDC_SetControlMode(pHandle->pSDC, MCM_SPEED_MODE);
+          pHandle->pSDC->RampRemainingStep = 0u; /* Interrupts previous ramp. */
+          commandHasBeenExecuted = SDC_ExecRamp(pHandle->pSDC, pHandle->hFinalSpeed, pHandle->hDurationms);
           break;
         }
 
@@ -412,7 +427,7 @@ __weak MCI_CommandState_t MCI_IsCommandAcknowledged(MCI_Handle_t *pHandle)
 #endif
     retVal = pHandle->CommandState;
 
-    if ((MCI_COMMAND_EXECUTED_SUCCESSFULLY == retVal) || (MCI_COMMAND_EXECUTED_UNSUCCESSFULLY == retVal) )
+    if ((MCI_COMMAND_EXECUTED_SUCCESSFULLY == retVal) || (MCI_COMMAND_EXECUTED_UNSUCCESSFULLY == retVal))
     {
       pHandle->CommandState = MCI_BUFFER_EMPTY;
     }
@@ -662,7 +677,7 @@ __weak bool MCI_RampCompleted(MCI_Handle_t *pHandle)
 #endif
     if (RUN == MCI_GetSTMState(pHandle))
     {
-      retVal = STC_RampCompleted(pHandle->pSTC);
+      retVal = SDC_RampCompleted(pHandle->pSDC);
     }
     else
     {
@@ -685,9 +700,9 @@ __weak bool MCI_RampCompleted(MCI_Handle_t *pHandle)
 __weak bool MCI_StopSpeedRamp(MCI_Handle_t *pHandle)
 {
 #ifdef NULL_PTR_CHECK_MC_INT
-  return ((MC_NULL == pHandle) ? false : STC_StopSpeedRamp(pHandle->pSTC));
+  return ((MC_NULL == pHandle) ? false : SDC_StopSpeedRamp(pHandle->pSDC));
 #else
-  return (STC_StopSpeedRamp(pHandle->pSTC));
+  return (SDC_StopSpeedRamp(pHandle->pSDC));
 #endif
 }
 
@@ -705,7 +720,7 @@ __weak void MCI_StopRamp(MCI_Handle_t *pHandle)
   else
   {
 #endif
-    STC_StopRamp(pHandle->pSTC);
+    SDC_StopRamp(pHandle->pSDC);
 #ifdef NULL_PTR_CHECK_MC_INT
   }
 #endif
@@ -719,8 +734,9 @@ __weak void MCI_StopRamp(MCI_Handle_t *pHandle)
   *         frame transformation and (in speed control mode) for speed
   *         regulation is reliable, false otherwise
   */
-__weak bool MCI_GetSpdSensorReliability(MCI_Handle_t *pHandle)
+__weak bool MCI_GetSpdSensorReliability(const MCI_Handle_t *pHandle)
 {
+
   bool status;
 #ifdef NULL_PTR_CHECK_MC_INT
   if (MC_NULL == pHandle)
@@ -730,7 +746,7 @@ __weak bool MCI_GetSpdSensorReliability(MCI_Handle_t *pHandle)
   else
   {
 #endif
-    SpeednPosFdbk_Handle_t *SpeedSensor = STC_GetSpeedSensor(pHandle->pSTC);
+    const SpeednPosFdbk_6S_Handle_t *SpeedSensor = SDC_GetSpeedSensor(pHandle->pSDC);
     status = SPD_Check(SpeedSensor);
 #ifdef NULL_PTR_CHECK_MC_INT
   }
@@ -756,7 +772,7 @@ __weak int16_t MCI_GetAvrgMecSpeedUnit(MCI_Handle_t *pHandle)
   else
   {
 #endif
-    SpeednPosFdbk_Handle_t * SpeedSensor = STC_GetSpeedSensor(pHandle->pSTC);
+    SpeednPosFdbk_6S_Handle_t * SpeedSensor = SDC_GetSpeedSensor(pHandle->pSDC);
     temp_speed = SPD_GetAvrgMecSpeedUnit(SpeedSensor);
 #ifdef NULL_PTR_CHECK_MC_INT
   }
@@ -780,7 +796,7 @@ __weak float_t MCI_GetAvrgMecSpeed_F(MCI_Handle_t *pHandle)
   else
   {
 #endif
-    SpeednPosFdbk_Handle_t *SpeedSensor = STC_GetSpeedSensor(pHandle->pSTC);
+    SpeednPosFdbk_6S_Handle_t * SpeedSensor = SDC_GetSpeedSensor(pHandle->pSDC);
     returnAvrgSpeed = (((float_t)SPD_GetAvrgMecSpeedUnit(SpeedSensor) * (float_t)U_RPM) / (float_t)SPEED_UNIT);
 #ifdef NULL_PTR_CHECK_MC_INT
   }
@@ -797,9 +813,9 @@ __weak float_t MCI_GetAvrgMecSpeed_F(MCI_Handle_t *pHandle)
 __weak int16_t MCI_GetMecSpeedRefUnit(MCI_Handle_t *pHandle)
 {
 #ifdef NULL_PTR_CHECK_MC_INT
-  return ((MC_NULL == pHandle) ? 0 : STC_GetMecSpeedRefUnit(pHandle->pSTC));
+  return ((MC_NULL == pHandle) ? 0 : SDC_GetMecSpeedRefUnit(pHandle->pSDC));
 #else
-  return (STC_GetMecSpeedRefUnit(pHandle->pSTC));
+  return (SDC_GetMecSpeedRefUnit(pHandle->pSDC));
 #endif
 }
 
@@ -813,24 +829,13 @@ __weak float_t MCI_GetMecSpeedRef_F(MCI_Handle_t *pHandle)
 {
 #ifdef NULL_PTR_CHECK_MC_INT
   return ((MC_NULL == pHandle) ? 0.0f :
-          (((float_t)STC_GetMecSpeedRefUnit(pHandle->pSTC) * (float_t)U_RPM) / (float_t)SPEED_UNIT));
+          (((float_t)SDC_GetMecSpeedRefUnit(pHandle->pSDC) * (float_t)U_RPM) / (float_t)SPEED_UNIT));
 #else
-  return ((((float_t)STC_GetMecSpeedRefUnit(pHandle->pSTC) * (float_t)U_RPM) / (float_t)SPEED_UNIT));
+  return ((((float_t)SDC_GetMecSpeedRefUnit(pHandle->pSDC) * (float_t)U_RPM) / (float_t)SPEED_UNIT));
 #endif
 }
 
 /**
-  * @brief  It returns the reference eletrical torque, fed to derived class for
-  *         Iqref and Idref computation
-  * @param  pHandle Pointer on the component instance to work on.
-  * @retval uint16_t Teref
-  */
-__weak uint16_t MCI_GetDutyCycleRef( MCI_Handle_t * pHandle )
-{
-  return ( pHandle->pSixStepVars->DutyCycleRef );
-}
-
-/**
   * @}
   */
 
@@ -842,4 +847,4 @@ __weak uint16_t MCI_GetDutyCycleRef( MCI_Handle_t * pHandle )
   * @}
   */
 
-/************************ (C) COPYRIGHT 2024 STMicroelectronics *****END OF FILE****/
+/************************ (C) COPYRIGHT 2026 STMicroelectronics *****END OF FILE****/

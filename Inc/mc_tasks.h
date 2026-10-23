@@ -7,7 +7,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2024 STMicroelectronics.
+  * <h2><center>&copy; Copyright (c) 2026 STMicroelectronics.
   * All rights reserved.</center></h2>
   *
   * This software component is licensed by ST under Ultimate Liberty license
@@ -34,9 +34,31 @@
   * @{
   */
 
+/** @addtogroup COMMON_MC
+  * @{
+  */
+
+/**
+  * @defgroup COMMON_MC Common Motor Control
+  * @brief
+  *
+  * @{
+  */
+
+/** @addtogroup DynamicLoops
+  * @{
+  */
+
+ /** @defgroup DynamicLoops Dynamic loops
+  *
+  * @brief
+  *
+  * @{
+  */
+
 /** @defgroup MCTasks Motor Control Tasks
   *
-  * @brief Motor Control subsystem configuration and operation routines.
+  * @brief Common Motor Control subsystem configuration and operation routines.
   *
   * @{
   */
@@ -62,13 +84,7 @@ void TSK_SafetyTask(void);
 void SIX_STEP_Init(void);
 
 /* */
-uint8_t SIX_STEP_HighFrequencyTask(uint8_t bMotorNbr);
-
-/* */
 void SIX_STEP_Clear(uint8_t bMotor);
-
-/* Executes the Motor Control duties that require a high frequency rate and a precise timing */
-uint8_t TSK_HighFrequencyTask(void);
 
 /* */
 void TSK_SetChargeBootCapDelayM1(uint16_t hTickCount);
@@ -89,9 +105,6 @@ void TSK_SetStopPermanencyTimeM2(uint16_t SysTickCount);
 void TSK_SetChargeBootCapDelayM2(uint16_t hTickCount);
 
 /* */
-void TSK_SetChargeBootCapDelayM2(uint16_t hTickCount);
-
-/* */
 bool TSK_StopPermanencyTimeHasElapsedM2(void);
 
 /* */
@@ -105,7 +118,8 @@ void TSK_HardwareFaultTask(void);
  /* Locks GPIO pins used for Motor Control to prevent accidental reconfiguration */
 void mc_lock_pins(void);
 
-uint16_t SixStep_StepCommution(void);
+ /* Execute the speed timer configuration */
+void TSK_SpeedTIM_task(void);
 
 /**
   * @}
@@ -120,4 +134,4 @@ uint16_t SixStep_StepCommution(void);
 #endif /* __cpluplus */
 
 #endif /* MCTASKS_H */
-/******************* (C) COPYRIGHT 2024 STMicroelectronics *****END OF FILE****/
+/******************* (C) COPYRIGHT 2026 STMicroelectronics *****END OF FILE****/

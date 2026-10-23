@@ -7,7 +7,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2024 STMicroelectronics.
+  * <h2><center>&copy; Copyright (c) 2026 STMicroelectronics.
   * All rights reserved.</center></h2>
   *
   * This software component is licensed by ST under Ultimate Liberty license
@@ -16,7 +16,7 @@
   *                             www.st.com/SLA0044
   *
   ******************************************************************************
-  * @ingroup MCIAPI
+  * @ingroup  MCIAPI
   */
 
 #include "mc_interface.h"
@@ -28,14 +28,25 @@
   * @{
   */
 
+/** @addtogroup COMMON_MC
+  * @{
+  */
+
 /**
-  * @defgroup CAI Application Programming Interface
-  * @brief Interface for Motor Control applications using the classic SDK
+  * @defgroup COMMON_MC Common Motor Control
+  * @brief
   *
   * @{
   */
 
-/** @defgroup MCIAPI Motor Control API
+/**
+  * @defgroup CAI Application Programming Interface
+  * @brief Interface for Motor Control applications using the classic SDK for FOC and SixStep.
+  *
+  * @{
+  */
+
+/** @defgroup  MCIAPI Motor Control API
   *
   * @brief High level Programming Interface of the Motor Control SDK
   *
@@ -139,14 +150,6 @@ __weak bool MC_StopMotor1(void)
 __weak void MC_ProgramSpeedRampMotor1(int16_t hFinalSpeed, uint16_t hDurationms)
 {
   MCI_ExecSpeedRamp(pMCI[M1], hFinalSpeed, hDurationms);
-}
-
-/**
- * @brief returns the electrical torque reference for Motor 1
- */
-__weak int16_t MCI_GetDutyCycleRefMotor1(void)
-{
-  return (MCI_GetDutyCycleRef(pMCI[M1]));
 }
 
 /**
@@ -333,6 +336,12 @@ __weak MCI_State_t MC_GetSTMStateMotor1(void)
  *  */ //cstat !MISRAC2012-Rule-2.7 !RED-unused-param  !MISRAC2012-Rule-2.7  !MISRAC2012-Rule-8.13
 __weak uint8_t MC_ProfilerCommand(uint16_t rxLength, uint8_t *rxBuffer, int16_t txSyncFreeSpace, uint16_t *txLength, uint8_t *txBuffer)
 {
+  (void)rxLength;
+  (void)rxBuffer;
+  (void)txSyncFreeSpace;
+  (void)txLength;
+  (void)txBuffer;
+
   return (MCP_CMD_UNKNOWN);
 }
 
@@ -348,5 +357,5 @@ __weak uint8_t MC_ProfilerCommand(uint16_t rxLength, uint8_t *rxBuffer, int16_t 
   * @}
   */
 
-/************************ (C) COPYRIGHT 2024 STMicroelectronics *****END OF FILE****/
+/************************ (C) COPYRIGHT 2026 STMicroelectronics *****END OF FILE****/
 

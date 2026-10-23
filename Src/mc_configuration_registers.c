@@ -8,7 +8,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2024 STMicroelectronics.
+  * <h2><center>&copy; Copyright (c) 2026 STMicroelectronics.
   * All rights reserved.</center></h2>
   *
   * This software component is licensed by ST under Ultimate Liberty license
@@ -24,7 +24,7 @@
 #include "register_interface.h"
 #include "parameters_conversion.h"
 
-#define FIRMWARE_NAME_STR "ST MC SDK\tVer.6.3.0"
+#define FIRMWARE_NAME_STR "ST MC SDK\tVer.6.4.2"
 
 const char_t CTL_BOARD[] = "B-G431B-ESC1";
 static const char_t M1_PWR_BOARD[] = "B-G431B-ESC1";
@@ -35,17 +35,17 @@ const GlobalConfig_reg_t globalConfig_reg =
   .SDKVersion     = SDK_VERSION,
   .MotorNumber    =  1 ,
   .MCP_Flag       = FLAG_MCP_OVER_STLINK + FLAG_MCP_OVER_UARTA + FLAG_MCP_OVER_UARTB,
-  .MCPA_UARTA_LOG = 10,
+  .MCPA_UARTA_LOG = 0, /* Used by Motor Pilot to detect data log enabled. */
   .MCPA_UARTB_LOG = 0,
   .MCPA_STLNK_LOG = 0,
 };
 
 static const ApplicationConfig_reg_t M1_ApplicationConfig_reg =
 {
-  .maxMechanicalSpeed = 10002,
+  .maxMechanicalSpeed = 15804,
   .maxReadableCurrent = M1_MAX_READABLE_CURRENT,
   .nominalCurrent     = 2.160,
-  .nominalVoltage     = 11,
+  .nominalVoltage     = 8,
   .driveType          = DRIVE_TYPE_M1,
 };
 
@@ -55,19 +55,20 @@ static const MotorConfig_reg_t M1_MotorConfig_reg =
   .polePairs  = 6,
   .ratedFlux  = 0.5,
   .rs         = 0.1,
-  .ls         = 0.000024*1.000,
-  .ld         = 0.000024,
+  .ls         = 0.000017*1.000,
+  .ld         = 0.000017,
   .maxCurrent = 2.160,
-  .name = "01 plastik"
+  .name = "03 plastik 20k rpm"
 };
 
 static const SixStepFwConfig_reg_t M1_SixStepConfig_reg =
 {
   .primarySensor      = (uint8_t)PRIM_SENSOR_M1,
   .topology           = (uint8_t)TOPOLOGY_M1,
-  .PWMFrequency       = (uint32_t)PWM_FREQ_M1,
+  .PWMFrequency       = (uint32_t)PWM_FREQUENCY,
   .MediumFrequency    = (uint16_t)MEDIUM_FREQUENCY_TASK_RATE,
   .configurationFlag1 = (uint16_t)configurationFlag1_M1, //cstat !MISRAC2012-Rule-10.1_R6
+  .configurationFlag2 = (uint16_t)configurationFlag2_M1, //cstat !MISRAC2012-Rule-10.1_R6
   .driveMode          = (uint8_t)DEFAULT_DRIVE_MODE
 };
 
@@ -76,4 +77,4 @@ const SixStepFwConfig_reg_t* SixStepConfig_reg[NBR_OF_MOTORS] = {&M1_SixStepConf
 const MotorConfig_reg_t* MotorConfig_reg[NBR_OF_MOTORS] = {&M1_MotorConfig_reg};
 const ApplicationConfig_reg_t* ApplicationConfig_reg[NBR_OF_MOTORS] = {&M1_ApplicationConfig_reg};
 
-/************************ (C) COPYRIGHT 2024 STMicroelectronics *****END OF FILE****/
+/************************ (C) COPYRIGHT 2026 STMicroelectronics *****END OF FILE****/

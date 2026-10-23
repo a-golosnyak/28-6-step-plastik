@@ -8,7 +8,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2024 STMicroelectronics.
+  * <h2><center>&copy; Copyright (c) 2026 STMicroelectronics.
   * All rights reserved.</center></h2>
   *
   * This software component is licensed by ST under Ultimate Liberty license
@@ -37,16 +37,9 @@
 #define M1_MAX_READABLE_CURRENT             (ADC_REFERENCE_VOLTAGE / ( RSHUNT * AMPLIFICATION_GAIN))
 
 /************************* CONTROL FREQUENCIES & DELAIES **********************/
-#define TF_REGULATION_RATE                  (uint32_t)((uint32_t)(PWM_FREQUENCY) / (REGULATION_EXECUTION_RATE))
 
-/* TF_REGULATION_RATE_SCALED is TF_REGULATION_RATE divided by PWM_FREQ_SCALING to allow more dynamic */
-#define TF_REGULATION_RATE_SCALED           (uint16_t)((uint32_t)(PWM_FREQUENCY) / (REGULATION_EXECUTION_RATE\
-                                            * PWM_FREQ_SCALING))
+#define DPP_CONV_FACTOR                     65536
 
-/* DPP_CONV_FACTOR is introduce to compute the right DPP with TF_REGULATOR_SCALED  */
-#define DPP_CONV_FACTOR                     (65536 / PWM_FREQ_SCALING)
-
-#define REP_COUNTER                         (uint16_t)(REGULATION_EXECUTION_RATE - 1u)
 #define SYS_TICK_FREQUENCY                  (uint16_t)2000
 #define UI_TASK_FREQUENCY_HZ                10U
 
@@ -63,8 +56,11 @@
 
 #define PERCENTAGE_FACTOR                   (uint16_t)(VARIANCE_THRESHOLD * 128u)
 
+#define SPEED_TIMER_CONV_FACTOR             (uint32_t) ((10 * APB1TIM_FREQ / (POLE_PAIR_NUM * (LF_TIMER_PSC + 1))) * SPEED_UNIT/ U_RPM)
+
 /************************* BEMF OBSERVER PARAMETERS **************************/
 #define OBS_MINIMUM_SPEED_UNIT              (uint16_t)((OBS_MINIMUM_SPEED_RPM * SPEED_UNIT) / U_RPM)
+#define BEMF_ERRORS_SCORE                   (uint16_t)(10 * M1_MAX_CONSECUTIVE_BEMF_ERRORS)
 /*!< Conversion factor from bus voltage digits to bemf threshold digits */
 #define BEMF_BUS2THRES_FACTOR               (uint16_t)(1000 * VBUS_PARTITIONING_FACTOR * BEMF_ON_SENSING_DIVIDER)
 /*!< Correction factor for bemf divider diode voltage drop */
@@ -93,10 +89,10 @@
 
 #define DEMAG_MINIMUM_SPEED                    SPEED_THRESHOLD_DEMAG * SPEED_UNIT / U_RPM
 #define DEMAG_REVUP_CONV_FACTOR                (uint32_t)((((DEMAG_REVUP_STEP_RATIO * PWM_FREQUENCY * SPEED_UNIT)\
-                                               / (600 * POLE_PAIR_NUM )) * PWM_PERIOD_CYCLES * TIM_CLOCK_DIVIDER ) / (LF_TIMER_PSC + 1))
+                                               / (600 * POLE_PAIR_NUM )) * LFTIM_PERIOD_CYCLES * TIM_CLOCK_DIVIDER ) / (LF_TIMER_PSC + 1))
 #define DEMAG_RUN_CONV_FACTOR                  (uint32_t)((((DEMAG_RUN_STEP_RATIO * PWM_FREQUENCY * SPEED_UNIT)\
-                                               / (600 * POLE_PAIR_NUM )) * PWM_PERIOD_CYCLES * TIM_CLOCK_DIVIDER )  / (LF_TIMER_PSC + 1))
-#define MIN_DEMAG_COUNTER_TIME                 (uint32_t) ((MIN_DEMAG_TIME * PWM_PERIOD_CYCLES * TIM_CLOCK_DIVIDER ) / (LF_TIMER_PSC + 1))
+                                               / (600 * POLE_PAIR_NUM )) * LFTIM_PERIOD_CYCLES * TIM_CLOCK_DIVIDER )  / (LF_TIMER_PSC + 1))
+#define MIN_DEMAG_COUNTER_TIME                 (uint32_t) ((MIN_DEMAG_TIME * LFTIM_PERIOD_CYCLES * TIM_CLOCK_DIVIDER ) / (LF_TIMER_PSC + 1))
 
 /**************************   VOLTAGE CONVERSIONS  Motor 1 *************************/
 #define OVERVOLTAGE_THRESHOLD_d             (uint16_t)(OV_VOLTAGE_THRESHOLD_V * 65535 /\
@@ -113,7 +109,7 @@
 #define DELTA_V_HYSTERESIS                  (dV_dT * DELTA_TEMP_HYSTERESIS)
 #define OV_TEMPERATURE_HYSTERESIS_d         (DELTA_V_HYSTERESIS * INT_SUPPLY_VOLTAGE)
 
-/*************** Timer for PWM generation & currenst sensing parameters  ******/
+/*************** Timer for PWM generation  ******/
 #define PWM_PERIOD_CYCLES                    (uint16_t)(((uint32_t)ADV_TIM_CLK_MHz * (uint32_t)1000000u\
                                              / ((uint32_t)(PWM_FREQUENCY))) & (uint16_t)0xFFFE)
 #define DEADTIME_NS                          SW_DEADTIME_NS
@@ -131,6 +127,9 @@
 #define DEAD_TIME_COUNTS 510
 #endif
 
+/*************** Timer for speed measurement  ******/
+#define LFTIM_PERIOD_CYCLES                    (uint16_t)(((uint32_t)APB1TIM_FREQ \
+                                             / ((uint32_t)(PWM_FREQUENCY))) & (uint16_t)0xFFFE)
 /**********************/
 /* MOTOR 1 ADC Timing */
 /**********************/
@@ -171,4 +170,4 @@
 
 #endif /*PARAMETERS_CONVERSION_H*/
 
-/******************* (C) COPYRIGHT 2024 STMicroelectronics *****END OF FILE****/
+/******************* (C) COPYRIGHT 2026 STMicroelectronics *****END OF FILE****/

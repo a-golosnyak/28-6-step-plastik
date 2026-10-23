@@ -8,7 +8,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2024 STMicroelectronics.
+  * <h2><center>&copy; Copyright (c) 2026 STMicroelectronics.
   * All rights reserved.</center></h2>
   *
   * This software component is licensed by ST under Ultimate Liberty license
@@ -23,7 +23,6 @@
 #define MC_CONFIG_COMMON_H
 
 #include "pid_regulator.h"
-#include "virtual_speed_sensor.h"
 #include "ntc_temperature_sensor.h"
 #include "mc_interface.h"
 #include "mc_configuration_registers.h"
@@ -34,7 +33,6 @@
 
 extern RegConv_t TempRegConv_M1;
 extern NTC_Handle_t TempSensor_M1;
-extern VirtualSpeedSensor_Handle_t VirtualSpeedSensorM1;
 extern RegConv_t VbusRegConv_M1;
 extern RDivider_Handle_t BusVoltageSensor_M1;
 extern PWMC_Handle_t *pwmcHandle[NBR_OF_MOTORS];
@@ -47,4 +45,4 @@ extern RegConv_t PotRegConv_M1;
 /* USER CODE END Additional extern */
 
 #endif /* MC_CONFIG_COMMON_H */
-/******************* (C) COPYRIGHT 2024 STMicroelectronics *****END OF FILE****/
+/******************* (C) COPYRIGHT 2026 STMicroelectronics *****END OF FILE****/

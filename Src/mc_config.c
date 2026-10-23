@@ -7,7 +7,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2024 STMicroelectronics.
+  * <h2><center>&copy; Copyright (c) 2026 STMicroelectronics.
   * All rights reserved.</center></h2>
   *
   * This software component is licensed by ST under Ultimate Liberty license
@@ -53,9 +53,17 @@ PID_Handle_t PIDSpeedHandle_M1 =
   .hKdDivisorPOW2      = 0x0000U,
 };
 
-SpeednTorqCtrl_Handle_t SpeednTorqCtrlM1 =
+static SpeednDutyCtrl_Handle_t SpeednDutyCtrlM1 =
 {
-  .STCFrequencyHz             = MEDIUM_FREQUENCY_TASK_RATE,
+  .Mode                       = DEFAULT_CONTROL_MODE,                         /* Changed during RevUp phase */
+  .TargetFinal                = 0,                                            /* Will be updated with SDC_ExecRamp and SDC_CalcSpeedReference. */
+  .SpeedRefUnitExt            = (int32_t)(DEFAULT_TARGET_SPEED_UNIT) * 65536, /* Mechanical rotor speed reference. */
+  .DutyCycleRef               = 0U * 65536U,                                  /* Will be updated during RevUp phase. */
+  .RampRemainingStep          = 0U,
+  .PISpeed                    = &PIDSpeedHandle_M1,                            /* Speed PID pointeur. */
+  .SPD                        = &RevUpControlM1._Super,                        /* Speed sensor pointer. */
+  .IncDecAmount               = 0U,
+  .SDCFrequencyHz             = MEDIUM_FREQUENCY_TASK_RATE,
   .MaxAppPositiveMecSpeedUnit = (uint16_t)(MAX_APPLICATION_SPEED_UNIT),
   .MinAppPositiveMecSpeedUnit = (uint16_t)(MIN_APPLICATION_SPEED_UNIT),
   .MaxAppNegativeMecSpeedUnit = (int16_t)(-MIN_APPLICATION_SPEED_UNIT),
@@ -63,16 +71,23 @@ SpeednTorqCtrl_Handle_t SpeednTorqCtrlM1 =
   .MaxPositiveDutyCycle       = (uint16_t)PERIODMAX / 2U,
   .ModeDefault                = DEFAULT_CONTROL_MODE,
   .MecSpeedRefUnitDefault     = (int16_t)(DEFAULT_TARGET_SPEED_UNIT),
-
-  .DutyCycleRefDefault        = 0,
+  .DutyCycleRefDefault        = 0U,
 };
 
-RevUpCtrl_Handle_t RevUpControlM1 =
+RevUpCtrl_6S_Handle_t RevUpControlM1 =
 {
+  ._Super =
+  {
+    .bElToMecRatio             = POLE_PAIR_NUM,
+    .hMaxReliableMecSpeedUnit  = (uint16_t)(1.15*MAX_APPLICATION_SPEED_UNIT),
+    .hMinReliableMecSpeedUnit  = (uint16_t)(MIN_APPLICATION_SPEED_UNIT),
+    .bMaximumSpeedErrorsNumber = M1_SS_MEAS_ERRORS_BEFORE_FAULTS,
+    .speedConvFactor           = SPEED_TIMER_CONV_FACTOR,
+  },
+
   .hRUCFrequencyHz         = MEDIUM_FREQUENCY_TASK_RATE,
-  .hStartingMecAngle       = (int16_t)((int32_t)(STARTING_ANGLE_DEG)* 65536/360),
-  .bFirstAccelerationStage = (ENABLE_SL_ALGO_FROM_PHASE-1u),
   .hMinStartUpValidSpeed   = OBS_MINIMUM_SPEED_UNIT,
+  .pSDC                    = &SpeednDutyCtrlM1,
 
   .ParamsData  =
   {
@@ -97,9 +112,7 @@ Bemf_ADC_Handle_t Bemf_ADC_M1 =
     .hMaxReliableMecSpeedUnit  = (uint16_t)(1.15*MAX_APPLICATION_SPEED_UNIT),
     .hMinReliableMecSpeedUnit  = (uint16_t)(MIN_APPLICATION_SPEED_UNIT),
     .bMaximumSpeedErrorsNumber = M1_SS_MEAS_ERRORS_BEFORE_FAULTS,
-    .hMaxReliableMecAccelUnitP = 65535,
-    .hMeasurementFrequency     = TF_REGULATION_RATE_SCALED,
-    .DPPConvFactor             = DPP_CONV_FACTOR,
+    .speedConvFactor           = SPEED_TIMER_CONV_FACTOR,
   },
 
   .Pwm_H_L =
@@ -118,14 +131,8 @@ Bemf_ADC_Handle_t Bemf_ADC_M1 =
   .ComputationDelay            = (uint8_t) (- COMPUTATION_DELAY),
   .ZcRising2CommDelay          = ZCD_RISING_TO_COMM_9BIT,
   .ZcFalling2CommDelay         = ZCD_FALLING_TO_COMM_9BIT,
-  .pParams_str                 = &Bemf_ADC_ParamsM1,
-  .TIMClockFreq                = SYSCLK_FREQ,
-  .PWMFreqScaling              = PWM_FREQ_SCALING,
-  .SpeedSamplingFreqHz         = MEDIUM_FREQUENCY_TASK_RATE,
   .SpeedBufferSize             = BEMF_AVERAGING_FIFO_DEPTH,
-  .LowFreqTimerPsc             = LF_TIMER_PSC,
   .StartUpConsistThreshold     = NB_CONSECUTIVE_TESTS,
-
   .DemagParams =
   {
     .DemagMinimumSpeedUnit     = DEMAG_MINIMUM_SPEED,
@@ -133,34 +140,34 @@ Bemf_ADC_Handle_t Bemf_ADC_M1 =
     .RunDemagSpeedConv         = DEMAG_RUN_CONV_FACTOR,
     .DemagMinimumThreshold     = MIN_DEMAG_COUNTER_TIME,
   },
-
+  .MaxZCDetectionErrors        = BEMF_ERRORS_SCORE,
   .DriveMode                   = DEFAULT_DRIVE_MODE,
 };
 
 PWMC_Handle_t PWM_Handle_M1 =
 {
-  .StartCntPh                = PWM_PERIOD_CYCLES,
-  .TurnOnLowSidesAction      = false,
-  .PWMperiod                 = PWM_PERIOD_CYCLES,
-  .OverCurrentFlag  = 0,
-  .OverVoltageFlag  = 0,
-  .BrakeActionLock  = 0,
+  .StartCntPh           = PWM_PERIOD_CYCLES,
+  .PWMperiod            = PWM_PERIOD_CYCLES,
+  .AlignStep            = ALIGN_STEP,
+  .OverCurrentFlag      = false,
+  .OverVoltageFlag      = false,
   .driverProtectionFlag = false,
-  .TimerCfg = &SixPwm_TimerCfgM1,
-  .QuasiSynchDecay  = false,
-  .LSModArray = {0,0,0,0,0,0},
-  .pParams_str = &PWMC_ParamsM1,
-  .LowSideOutputs    = (LowSideOutputsFunction_t)LOW_SIDE_SIGNALS_ENABLING,
+  .TimerCfg             = &SixPwm_TimerCfgM1,
+  .QuasiSynchDecay      = false,
+  .LSModArray           = {0,0,0,0,0,0},
+  .pParams_str          = &PWMC_ParamsM1,
+  .LowSideOutputs       = (LowSideOutputsFunction_t)LOW_SIDE_SIGNALS_ENABLING,
+  .TurnOnLowSidesAction = false,
 };
 
 SixStepVars_t SixStepVars[NBR_OF_MOTORS];
-SpeednTorqCtrl_Handle_t *pSTC[NBR_OF_MOTORS]    = {&SpeednTorqCtrlM1};
+SpeednDutyCtrl_Handle_t *pSDC[NBR_OF_MOTORS]    = {&SpeednDutyCtrlM1};
 NTC_Handle_t *pTemperatureSensor[NBR_OF_MOTORS] = {&TempSensor_M1};
 
 MCI_Handle_t Mci[NBR_OF_MOTORS] =
 {
   {
-    .pSTC = &SpeednTorqCtrlM1,
+    .pSDC = &SpeednDutyCtrlM1,
     .pSixStepVars = &SixStepVars[0],
     .pPWM = &PWM_Handle_M1,
     .lastCommand = MCI_NOCOMMANDSYET,
@@ -181,5 +188,5 @@ MCI_Handle_t Mci[NBR_OF_MOTORS] =
 
 /* USER CODE END Additional configuration */
 
-/******************* (C) COPYRIGHT 2024 STMicroelectronics *****END OF FILE****/
+/******************* (C) COPYRIGHT 2026 STMicroelectronics *****END OF FILE****/
 

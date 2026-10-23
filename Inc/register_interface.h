@@ -9,7 +9,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2024 STMicroelectronics.
+  * <h2><center>&copy; Copyright (c) 2026 STMicroelectronics.
   * All rights reserved.</center></h2>
   *
   * This software component is licensed by ST under Ultimate Liberty license
@@ -22,7 +22,6 @@
 
 #ifndef REGISTER_INTERFACE_H
 #define REGISTER_INTERFACE_H
-#include "mcp.h"
 #include "mc_type.h"
 #include "mc_parameters.h"
 
@@ -83,11 +82,13 @@
 #define  MC_REG_QUASI_SYNCH              ((28U << ELT_IDENTIFIER_POS) | TYPE_DATA_8BIT)
 #define  MC_REG_PB_CHARACTERIZATION      ((29U << ELT_IDENTIFIER_POS) | TYPE_DATA_8BIT)
 #define  MC_REG_OPENLOOP_DC              ((30U << ELT_IDENTIFIER_POS) | TYPE_DATA_8BIT)
-#define  MC_REG_COMMUTATION_STEPBUFSIZE  ((31U << ELT_IDENTIFIER_POS) | TYPE_DATA_8BIT)
+#define  MC_REG_OPENLOOP_DC_FILTER       ((31U << ELT_IDENTIFIER_POS) | TYPE_DATA_8BIT)
 #define  MC_REG_OPENLOOP                 ((32U << ELT_IDENTIFIER_POS) | TYPE_DATA_8BIT)
 #define  MC_REG_OPENLOOP_REVUP           ((33U << ELT_IDENTIFIER_POS) | TYPE_DATA_8BIT)
 #define  MC_REG_OPENLOOP_VOLTFACTOR      ((34U << ELT_IDENTIFIER_POS) | TYPE_DATA_8BIT)
 #define  MC_REG_OPENLOOP_SENSING         ((35U << ELT_IDENTIFIER_POS) | TYPE_DATA_8BIT)
+#define  MC_REG_IPD_ENABLE               ((36U << ELT_IDENTIFIER_POS) | TYPE_DATA_8BIT)
+#define  MC_REG_IPD_DEBUG                ((37U << ELT_IDENTIFIER_POS) | TYPE_DATA_8BIT)
 
 /* TYPE_DATA_16BIT registers definition */
 #define  MC_REG_SPEED_KP                 ((2U << ELT_IDENTIFIER_POS) | TYPE_DATA_16BIT)
@@ -186,11 +187,16 @@
 #define  MC_REG_FLUXWK_KP_DIV            ((101 << ELT_IDENTIFIER_POS) | TYPE_DATA_16BIT)
 #define  MC_REG_FLUXWK_KI_DIV            ((102 << ELT_IDENTIFIER_POS) | TYPE_DATA_16BIT)
 #define  MC_REG_STARTUP_CURRENT_REF      ((105 << ELT_IDENTIFIER_POS) | TYPE_DATA_16BIT)
-#define  MC_REG_PULSE_VALUE              ((106 << ELT_IDENTIFIER_POS) | TYPE_DATA_16BIT)
 #define  MC_REG_FOC_VQREF                ((107 << ELT_IDENTIFIER_POS) | TYPE_DATA_16BIT)
-#define  MC_REG_OVERVOLTAGETHRESHOLD     ((112U << ELT_IDENTIFIER_POS)| TYPE_DATA_16BIT )
-#define  MC_REG_UNDERVOLTAGETHRESHOLD    ((113U << ELT_IDENTIFIER_POS)| TYPE_DATA_16BIT )
 #define  MC_REG_OPENLOOP_CURRFACTOR      ((108U << ELT_IDENTIFIER_POS) | TYPE_DATA_16BIT)
+#define  MC_REG_CURR_MONITOR             ((109U << ELT_IDENTIFIER_POS) | TYPE_DATA_16BIT)
+#define  MC_REG_CURR_MONITOR_SAMPL_NS    ((110U << ELT_IDENTIFIER_POS) | TYPE_DATA_16BIT)
+#define  MC_REG_CURR_MONITOR_AVG         ((111U << ELT_IDENTIFIER_POS) | TYPE_DATA_16BIT)
+#define  MC_REG_OVERVOLTAGETHRESHOLD     ((112U << ELT_IDENTIFIER_POS) | TYPE_DATA_16BIT)
+#define  MC_REG_UNDERVOLTAGETHRESHOLD    ((113U << ELT_IDENTIFIER_POS) | TYPE_DATA_16BIT)
+#define  MC_REG_IPD_VSTR                 ((114U << ELT_IDENTIFIER_POS) | TYPE_DATA_16BIT)
+#define  MC_REG_OPENLOOP_EL_ANGLE        ((115U << ELT_IDENTIFIER_POS) | TYPE_DATA_16BIT)
+#define  MC_REG_IPD_VSTPTR               ((116U << ELT_IDENTIFIER_POS) | TYPE_DATA_16BIT)
 
 /* TYPE_DATA_32BIT registers definition */
 #define  MC_REG_FAULTS_FLAGS             ((0 << ELT_IDENTIFIER_POS) | TYPE_DATA_32BIT)
@@ -257,9 +263,6 @@ uint8_t RI_GetRegisterMotor1(uint16_t regID, uint8_t typeID, uint8_t * data, uin
 
 uint8_t RI_MovString(const char_t * srcString, char_t * destString, uint16_t *size, int16_t maxSize);
 
-uint8_t RI_GetPtrReg(uint16_t dataID, void **dataPtr);
-uint8_t RI_GetIDSize(uint16_t dataID);
-
 #endif /* REGISTER_INTERFACE_H */
 
-/************************ (C) COPYRIGHT 2024 STMicroelectronics *****END OF FILE****/
+/************************ (C) COPYRIGHT 2026 STMicroelectronics *****END OF FILE****/

@@ -122,22 +122,6 @@
 <#assign M2_ADC = MC.M2_CS_ADC_U>
   </#if><#-- M2_CURRENT_SENSING_TOPO == 'THREE_SHUNT' -->
 
-  <#if MC.M1_CURRENT_SENSING_TOPO == 'THREE_SHUNT'> 
-<#assign M1_CS_TOPO ="R3_"+MC.M1_CS_ADC_NUM >
-  <#elseif ((MC.M1_CURRENT_SENSING_TOPO == 'SINGLE_SHUNT_PHASE_SHIFT') || (MC.M1_CURRENT_SENSING_TOPO == 'SINGLE_SHUNT_ACTIVE_WIN'))>  
-<#assign M1_CS_TOPO ="R1" >
-  <#elseif MC.M1_CURRENT_SENSING_TOPO == 'ICS_SENSORS'> 
-<#assign M1_CS_TOPO ="ICS" >
-  </#if>
-
-  <#if MC.M2_CURRENT_SENSING_TOPO == 'THREE_SHUNT'> 
-<#assign M2_CS_TOPO ="R3_"+MC.M2_CS_ADC_NUM >
-  <#elseif ((MC.M2_CURRENT_SENSING_TOPO == 'SINGLE_SHUNT_PHASE_SHIFT') || (MC.M2_CURRENT_SENSING_TOPO == 'SINGLE_SHUNT_ACTIVE_WIN'))>  
-<#assign M2_CS_TOPO ="R1" >
-  <#elseif MC.M2_CURRENT_SENSING_TOPO == 'ICS_SENSORS'> 
-<#assign M2_CS_TOPO ="ICS" >
-  </#if>
-
   <#if MC.M1_PWM_TIMER_SELECTION == 'PWM_TIM1' || MC.M1_PWM_TIMER_SELECTION == 'TIM1'>
 <#assign R1_DMA_M1 = "DMA1">
 <#assign R1_DMA_CH_M1 = "LL_DMA_CHANNEL_1">
@@ -166,7 +150,8 @@
 <#assign R1_DMA_M1 = "GPDMA1">
 <#assign R1_DMA_CH_M1 = "LL_DMA_CHANNEL_0"> 
   <#elseif MC.M1_PWM_TIMER_SELECTION == 'PWM_TIM8' || MC.M1_PWM_TIMER_SELECTION == 'TIM8'>
-#error To Be Done
+<#assign R1_DMA_M1 = "GPDMA1">
+<#assign R1_DMA_CH_M1 = "LL_DMA_CHANNEL_1"> 
   </#if><#-- MC.M1_PWM_TIMER_SELECTION == 'PWM_TIM1' || MC.M1_PWM_TIMER_SELECTION == 'TIM1' -->
 </#if><#-- CondFamily_STM32H5 == true -->
 
@@ -207,19 +192,17 @@
   </#if><#-- MC.M1_PWM_TIMER_SELECTION == 'PWM_TIM1' || MC.M1_PWM_TIMER_SELECTION == 'TIM1' -->
 </#if><#-- CondFamily_STM32L4 -->
 
-<#if CondFamily_STM32C0 || CondFamily_STM32G0 || CondFamily_STM32F3 || CondFamily_STM32L4 || CondFamily_STM32F0 || CondFamily_STM32G4 || CondFamily_STM32H5>
+<#if CondFamily_STM32C0 || CondFamily_STM32G0 || CondFamily_STM32F3 || CondFamily_STM32L4 || CondFamily_STM32F0 || CondFamily_STM32G4 || CondFamily_STM32H5 || CondFamily_STM32U5>
 <#assign currentFactor = "">
 <#elseif CondFamily_STM32F4 || CondFamily_STM32F7>
 <#assign currentFactor = "*2">
-</#if><#-- CondFamily_STM32C0 || CondFamily_STM32G0 || CondFamily_STM32F3 || CondFamily_STM32L4 || CondFamily_STM32F0
-          || CondFamily_STM32G4|| CondFamily_STM32H5 -->
-<#if CondFamily_STM32F3 || CondFamily_STM32L4 || CondFamily_STM32F4 ||  CondFamily_STM32F7 || CondFamily_STM32G4 || CondFamily_STM32H5>
+</#if>
+<#if CondFamily_STM32F3 || CondFamily_STM32L4 || CondFamily_STM32F4 || CondFamily_STM32F7 || CondFamily_STM32G4 || CondFamily_STM32H5 || CondFamily_STM32U5>
 <#assign HAS_ADC_INJ = true>
-<#else><#-- CondFamily_STM32F3 == false && CondFamily_STM32L4 == false && CondFamily_STM32F4 == false
-         && CondFamily_STM32F7 == false && CondFamily_STM32G4 == false -->
+<#else>
 <#assign HAS_ADC_INJ = false>
 </#if><#-- CondFamily_STM32F3 || CondFamily_STM32L4 || CondFamily_STM32F4 ||  CondFamily_STM32F7
-          || CondFamily_STM32G4 -->
+          || CondFamily_STM32G4 || CondFamily_STM32U5-->
 <#if CondFamily_STM32F4 || CondFamily_STM32F7>
 <#assign DMA_TYPE = "Stream">
 <#else><#-- CondFamily_STM32F4 == false && CondFamily_STM32F7 == false -->
@@ -256,5 +239,32 @@
   </#if><#-- CondFamily_STM32F4 == true -->
 </#if><#-- MC.DRIVE_NUMBER > 1 -->
 
-<#if ((MC.DRIVE_NUMBER == "1") || ((MC.DRIVE_NUMBER != "1")&&(M1_ADC == M2_ADC)))><#assign HIGH_FREQ_TRIGGER = "TIM_UP_IT"><#else><#assign HIGH_FREQ_TRIGGER = "ADC_IT"></#if>
+<#if CondFamily_STM32U5 == true>
+<#assign M1_ADC = MC.M1_CS_ADC_U>
+  <#if MC.M1_PWM_TIMER_SELECTION == 'PWM_TIM1' || MC.M1_PWM_TIMER_SELECTION == 'TIM1'>
+<#assign R1_DMA_M1 = "GPDMA1">
+<#assign R1_DMA_CH_M1 = "LL_DMA_CHANNEL_0"> 
+  <#elseif MC.M1_PWM_TIMER_SELECTION == 'PWM_TIM8' || MC.M1_PWM_TIMER_SELECTION == 'TIM8'>
+<#assign R1_DMA_M1 = "GPDMA1">
+<#assign R1_DMA_CH_M1 = "LL_DMA_CHANNEL_1"> 
+  </#if><#-- MC.M1_PWM_TIMER_SELECTION == 'PWM_TIM1' || MC.M1_PWM_TIMER_SELECTION == 'TIM1' -->
+</#if><#-- CondFamily_STM32U5 == true -->
+
+<#if (MC.DRIVE_NUMBER != "1")>
+  <#if (MC.ADC_PERIPH == MC.ADC_PERIPH2) >
+    <#-- both motors shares same ADC -->
+    <#assign HIGH_FREQ_TRIGGER = "TIM_UP_IT">
+  <#else>
+    <#-- check corner case. Ex dual three shunt 2ADC/1ADC, motor 1 uses ADCx and ADCy and motor 2 uses ADCy -->
+    <#-- but WB sets MC.ADC_PERIPH = ADCx and MC.ADC_PERIPH2 = ADCy => false independent resources --> 
+    <#if (MC.M1_CS_ADC_U == MC.ADC_PERIPH2) || (MC.M1_CS_ADC_V == MC.ADC_PERIPH2) || (MC.M1_CS_ADC_W == MC.ADC_PERIPH2)>
+      <#assign HIGH_FREQ_TRIGGER = "TIM_UP_IT">
+    <#else> 
+    <#-- true independent resources --> 
+      <#assign HIGH_FREQ_TRIGGER = "ADC_IT">
+    </#if>
+  </#if> 
+<#else>
+  <#assign HIGH_FREQ_TRIGGER = "TIM_UP_IT">
+</#if>
 
