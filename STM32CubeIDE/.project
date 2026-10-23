@@ -176,24 +176,9 @@
 			<locationURI>PARENT-1-PROJECT_LOC/Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal.c</locationURI>
 		</link>
 		<link>
-			<name>Drivers/STM32G4xx_HAL_Driver/stm32g4xx_hal_comp.c</name>
-			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal_comp.c</locationURI>
-		</link>
-		<link>
 			<name>Drivers/STM32G4xx_HAL_Driver/stm32g4xx_hal_cortex.c</name>
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal_cortex.c</locationURI>
-		</link>
-		<link>
-			<name>Drivers/STM32G4xx_HAL_Driver/stm32g4xx_hal_dac.c</name>
-			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal_dac.c</locationURI>
-		</link>
-		<link>
-			<name>Drivers/STM32G4xx_HAL_Driver/stm32g4xx_hal_dac_ex.c</name>
-			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal_dac_ex.c</locationURI>
 		</link>
 		<link>
 			<name>Drivers/STM32G4xx_HAL_Driver/stm32g4xx_hal_dma.c</name>
@@ -229,16 +214,6 @@
 			<name>Drivers/STM32G4xx_HAL_Driver/stm32g4xx_hal_gpio.c</name>
 			<type>1</type>
 			<locationURI>PARENT-1-PROJECT_LOC/Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal_gpio.c</locationURI>
-		</link>
-		<link>
-			<name>Drivers/STM32G4xx_HAL_Driver/stm32g4xx_hal_opamp.c</name>
-			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal_opamp.c</locationURI>
-		</link>
-		<link>
-			<name>Drivers/STM32G4xx_HAL_Driver/stm32g4xx_hal_opamp_ex.c</name>
-			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal_opamp_ex.c</locationURI>
 		</link>
 		<link>
 			<name>Drivers/STM32G4xx_HAL_Driver/stm32g4xx_hal_pwr.c</name>

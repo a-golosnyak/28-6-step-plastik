@@ -83,14 +83,11 @@
         <define key="M1_NOMINAL_BUS_VOLTAGE_V" value="8" />
         <define key="M1_OBS_MINIMUM_SPEED_RPM" value="2371" />
         <define key="M1_OCP_TOPOLOGY" value="NONE" />
-        <define key="M1_ON_OVER_VOLTAGE" value="TURN_OFF_PWM" />
         <define key="M1_OTF_STARTUP" value="FALSE" />
         <define key="M1_OV_TEMPERATURE_HYSTERESIS_C" value="10" />
         <define key="M1_OV_TEMPERATURE_PROT_ENABLING" value="ENABLE" />
         <define key="M1_OV_TEMPERATURE_THRESHOLD_C" value="70" />
-        <define key="M1_OV_VOLTAGE_PROT_ENABLING" value="ENABLE" />
-        <define key="M1_OV_VOLTAGE_THRESHOLD_V" value="9.8" />
-        <define key="M1_OVP_THRESHOLD_HIGH" value="9.8" />
+        <define key="M1_OV_VOLTAGE_PROT_ENABLING" value="DISABLE" />
         <define key="M1_PHASE1_DURATION" value="500" />
         <define key="M1_PHASE1_FINAL_SPEED_RPM" value="0" />
         <define key="M1_PHASE1_VOLTAGE_RMS" value="0.02" />
@@ -174,9 +171,8 @@
         <define key="MCU_USERNAME" value="STM32G431CBUx" />
         <define key="MIN_DEMAG_TIME" value="1" />
         <define key="MOTOR_TYPE" value="PMSM" />
-        <define key="ON_OVER_VOLTAGE" value="TURN_OFF_PWM" />
         <define key="OV_TEMPERATURE_PROT_ENABLING" value="ENABLE" />
-        <define key="OV_VOLTAGE_PROT_ENABLING" value="ENABLE" />
+        <define key="OV_VOLTAGE_PROT_ENABLING" value="DISABLE" />
         <define key="PHASE_U_BEMF_ADC" value="ADC2" />
         <define key="PHASE_U_BEMF_CHANNEL" value="ADC_Channel_17" />
         <define key="PHASE_U_BEMF_GPIO_PIN" value="GPIO_Pin_4" />
@@ -219,7 +215,6 @@
         <define key="PWM_FREQUENCY" value="47412" />
         <define key="PWM_TIMER_SELECTION" value="PWM_TIM1" />
         <define key="QUASI_SYNC" value="FALSE" />
-        <define key="R_BRAKE_SWITCH_OFF_THRES_V" value="8" />
         <define key="RCC_REQS" value="['RCC.ADC12CLockSelection=RCC_ADC12CLKSOURCE_PLL','RCC.ADC12Freq_Value=42500000','RCC.AHBFreq_Value=170000000','RCC.APB1Freq_Value=170000000','RCC.APB1TimFreq_Value=170000000','RCC.APB2Freq_Value=170000000','RCC.APB2TimFreq_Value=170000000','RCC.CK48CLockSelection=RCC_USBCLKSOURCE_PLL','RCC.CortexFreq_Value=170000000','RCC.CRSFreq_Value=48000000','RCC.EnbaleCSS=true','RCC.FamilyName=M','RCC.FCLKCortexFreq_Value=170000000','RCC.FDCANFreq_Value=170000000','RCC.HCLKFreq_Value=170000000','RCC.HSE_VALUE=8000000','RCC.HSI48_VALUE=48000000','RCC.I2C1Freq_Value=170000000','RCC.I2C2Freq_Value=170000000','RCC.I2C3Freq_Value=170000000','RCC.I2SFreq_Value=170000000','RCC.IPParameters=ADC12CLockSelection,ADC12Freq_Value,AHBFreq_Value,APB1Freq_Value,APB1TimFreq_Value,APB2Freq_Value,APB2TimFreq_Value,CK48CLockSelection,CRSFreq_Value,CortexFreq_Value,EnbaleCSS,FCLKCortexFreq_Value,FDCANFreq_Value,FamilyName,HCLKFreq_Value,HSE_VALUE,HSI48_VALUE,I2C1Freq_Value,I2C2Freq_Value,I2C3Freq_Value,I2SFreq_Value,LPTIM1Freq_Value,LPUART1Freq_Value,PLLM,PLLN,PLLP,PLLPoutputFreq_Value,PLLQoutputFreq_Value,PLLRCLKFreq_Value,PLLSourceVirtual,PREFETCH_ENABLE,PWRFreq_Value,RNGFreq_Value,SAI1Freq_Value,SYSCLKFreq_VALUE,SYSCLKSource,USART1Freq_Value,USART2Freq_Value,USART3Freq_Value,USBFreq_Value,VCOInputFreq_Value,VCOOutputFreq_Value','RCC.LPTIM1Freq_Value=170000000','RCC.LPUART1Freq_Value=170000000','RCC.PLLM=RCC_PLLM_DIV2','RCC.PLLN=85','RCC.PLLP=RCC_PLLP_DIV8','RCC.PLLPoutputFreq_Value=42500000','RCC.PLLQoutputFreq_Value=170000000','RCC.PLLRCLKFreq_Value=170000000','RCC.PLLSourceVirtual=RCC_PLLSOURCE_HSE','RCC.PREFETCH_ENABLE=1','RCC.PWRFreq_Value=170000000','RCC.RNGFreq_Value=170000000','RCC.SAI1Freq_Value=170000000','RCC.SYSCLKFreq_VALUE=170000000','RCC.SYSCLKSource=RCC_SYSCLKSOURCE_PLLCLK','RCC.USART1Freq_Value=170000000','RCC.USART2Freq_Value=170000000','RCC.USART3Freq_Value=170000000','RCC.USBFreq_Value=170000000','RCC.VCOInputFreq_Value=4000000','RCC.VCOOutputFreq_Value=340000000']" />
         <define key="REGULATION_EXECUTION_RATE" value="1" />
         <define key="RUN_DEMAG_TIME" value="20" />

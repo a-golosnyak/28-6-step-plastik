@@ -103,7 +103,7 @@
 #define DEFAULT_TARGET_SPEED_UNIT          (DEFAULT_TARGET_SPEED_RPM*SPEED_UNIT/U_RPM)
 
 /**************************    FIRMWARE PROTECTIONS SECTION   *****************/
-#define OV_VOLTAGE_THRESHOLD_V             9.8 /*!< Over-voltage threshold */
+#define OV_VOLTAGE_THRESHOLD_V             50 /*!< Over-voltage threshold */
 #define UD_VOLTAGE_THRESHOLD_V             8.0 /*!< Under-voltage threshold */
 #ifdef NOT_IMPLEMENTED
 #define ON_OVER_VOLTAGE                    TURN_OFF_PWM /*!< TURN_OFF_PWM */
