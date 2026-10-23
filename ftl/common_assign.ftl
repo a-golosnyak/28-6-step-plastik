@@ -22,8 +22,8 @@
 <#assign M2_IS_HALL_SENSOR = (MC.M2_SPEED_SENSOR == "HALL_SENSOR") || (MC.M2_AUXILIARY_SPEED_SENSOR == "HALL_SENSOR")>
 
 <#-- Charge Boot Cap enable condition -->
-<#assign CHARGE_BOOT_CAP_ENABLING = (! MC.M1_OTF_STARTUP) || ((MC.M1_OTF_STARTUP) && (MC.M1_PWM_DRIVER_PN == "STDRIVE101") && (MC.M1_DP_TOPOLOGY != "NONE"))>
-<#assign CHARGE_BOOT_CAP_ENABLING2 = (! MC.M2_OTF_STARTUP) || ((MC.M2_OTF_STARTUP) && (MC.M2_PWM_DRIVER_PN == "STDRIVE101") && (MC.M2_DP_TOPOLOGY != "NONE"))>
+<#assign CHARGE_BOOT_CAP_ENABLING = (! MC.M1_OTF_STARTUP) || (MC.M1_OTF_STARTUP) && ((MC.M1_PWM_DRIVER_PN == "STDRIVE101") || (MC.M1_PWM_DRIVER_PN == "STSPIN32G4"))>
+<#assign CHARGE_BOOT_CAP_ENABLING2 = (! MC.M2_OTF_STARTUP) || (MC.M2_OTF_STARTUP) && ((MC.M2_PWM_DRIVER_PN == "STDRIVE101") || (MC.M1_PWM_DRIVER_PN == "STSPIN32G4"))>
 
 <#-- Condition for STM32F302x8x MCU -->
 <#assign CondMcu_STM32F302x8x = (McuName?? && McuName?matches("STM32F302.8.*"))>
@@ -59,6 +59,8 @@
 <#assign CondFamily_STM32H5 = (FamilyName?? && FamilyName == "STM32H5") >
 <#-- Condition for STM32H7 Family -->
 <#assign CondFamily_STM32H7 = (FamilyName?? && FamilyName == "STM32H7") >
+<#-- Condition for STM32U5 Family -->
+<#assign CondFamily_STM32U5 = (FamilyName?? && FamilyName == "STM32U5") >
 
 <#assign CondIncludeMCConfig = (MC.M1_POTENTIOMETER_ENABLE == true) || (MC.M2_POTENTIOMETER_ENABLE == true) || (MC.ESC_ENABLE == true) >
 <#assign CondBootHookUsed = (MC.M1_POTENTIOMETER_ENABLE == true) || (MC.M2_POTENTIOMETER_ENABLE == true) || (MC.ESC_ENABLE == true) >
@@ -87,8 +89,7 @@
 </#if><#-- CondFamily_STM32F3 == false && CondFamily_STM32F4 == false && CondFamily_STM32G4 -->
 
 <#-- Define some helper symbols -->
-<#assign G4_Cut2_2_patch = CondFamily_STM32G4 >
-<#assign NoInjectedChannel = (CondFamily_STM32F0 || CondFamily_STM32G0 || CondFamily_STM32C0 || G4_Cut2_2_patch ) >
+<#assign NoInjectedChannel = (CondFamily_STM32F0 || CondFamily_STM32G0 || CondFamily_STM32C0  ) >
 
 <#if MC.M1_CURRENT_SENSING_TOPO=="THREE_SHUNT">
 <#assign currentSuffix = "Curr">

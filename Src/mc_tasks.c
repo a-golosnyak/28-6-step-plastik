@@ -8,7 +8,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2024 STMicroelectronics.
+  * <h2><center>&copy; Copyright (c) 2026 STMicroelectronics.
   * All rights reserved.</center></h2>
   *
   * This software component is licensed by ST under Ultimate Liberty license
@@ -54,14 +54,6 @@ static volatile uint16_t hBootCapDelayCounterM1 = ((uint16_t)0);
 static volatile uint16_t hStopPermanencyCounterM1 = ((uint16_t)0);
 static volatile uint8_t bMCBootCompleted = ((uint8_t)0);
 
-#define M1_CHARGE_BOOT_CAP_TICKS          (((uint16_t)SYS_TICK_FREQUENCY * (uint16_t)10) / 1000U)
-#define M1_CHARGE_BOOT_CAP_DUTY_CYCLES ((uint32_t)0.000\
-                                      * ((uint32_t)PWM_PERIOD_CYCLES / 2U))
-#define M2_CHARGE_BOOT_CAP_TICKS         (((uint16_t)SYS_TICK_FREQUENCY * (uint16_t)10) / 1000U)
-#define M2_CHARGE_BOOT_CAP_DUTY_CYCLES ((uint32_t)0\
-                                      * ((uint32_t)PWM_PERIOD_CYCLES2 / 2U))
-#define S16_90_PHASE_SHIFT             (int16_t)(65536/4)
-
 /* USER CODE BEGIN Private Variables */
 
 /* USER CODE END Private Variables */
@@ -70,10 +62,6 @@ static volatile uint8_t bMCBootCompleted = ((uint8_t)0);
 void TSK_MediumFrequencyTaskM1(void);
 void TSK_MF_StopProcessing(uint8_t motor);
 MCI_Handle_t *GetMCI(uint8_t bMotor);
-void TSK_SetChargeBootCapDelayM1(uint16_t hTickCount);
-bool TSK_ChargeBootCapDelayHasElapsedM1(void);
-void TSK_SetStopPermanencyTimeM1(uint16_t hTickCount);
-bool TSK_StopPermanencyTimeHasElapsedM1(void);
 void TSK_SafetyTask_PWMOFF(uint8_t motor);
 
 /* USER CODE BEGIN Private Functions */
@@ -104,6 +92,7 @@ __weak void MCboot( MCI_Handle_t* pMCIList[NBR_OF_MOTORS] )
     /*************************************************/
     /*    SIX_STEP initialization         */
     /*************************************************/
+    pMCIList[M1] = &Mci[M1];
     SIX_STEP_Init();
 
     ASPEP_start(&aspepOverUartA);
@@ -116,11 +105,6 @@ __weak void MCboot( MCI_Handle_t* pMCIList[NBR_OF_MOTORS] )
     /******************************************************/
     PID_HandleInit(&PIDSpeedHandle_M1);
 
-    /****************************************************/
-    /*   Virtual speed sensor component initialization  */
-    /****************************************************/
-    VSS_Init(&VirtualSpeedSensorM1);
-
     /********************************************************/
     /*   Bus voltage sensor component initialization        */
     /********************************************************/
@@ -132,8 +116,6 @@ __weak void MCboot( MCI_Handle_t* pMCIList[NBR_OF_MOTORS] )
     /*******************************************************/
     (void)RCM_RegisterRegConv(&TempRegConv_M1);
     NTC_Init(&TempSensor_M1);
-
-    pMCIList[M1] = &Mci[M1];
 
     /* Applicative hook in MCBoot() */
     MC_APP_BootHook();
@@ -179,6 +161,7 @@ __weak void MC_RunMotorControlTasks(void)
     }
     else
     {
+
       TSK_MediumFrequencyTaskM1();
 
       /* Applicative hook at end of Medium Frequency for Motor 1 */
@@ -230,7 +213,6 @@ __weak void MC_RunMotorControlTasks(void)
     {
       /* Nothing to do */
     }
-
   /* USER CODE BEGIN MC_Scheduler 2 */
 
   /* USER CODE END MC_Scheduler 2 */
@@ -238,7 +220,6 @@ __weak void MC_RunMotorControlTasks(void)
     /* Safety task is run after Medium Frequency task so that
      * it can overcome actions they initiated if needed */
     TSK_SafetyTask();
-
   }
 }
 
@@ -296,49 +277,6 @@ __weak bool TSK_StopPermanencyTimeHasElapsedM1(void)
   return (retVal);
 }
 
-#if defined (CCMRAM)
-#if defined (__ICCARM__)
-#pragma location = ".ccmram"
-#elif defined (__CC_ARM) || defined(__GNUC__)
-__attribute__((section (".ccmram")))
-#endif
-#endif
-
-/**
-  * @brief  Executes the Motor Control duties that require a high frequency rate and a precise timing.
-  *
-  *  This is mainly the FOC current control loop. It is executed depending on the state of the Motor Control
-  * subsystem (see the state machine(s)).
-  *
-  * @retval Number of the  motor instance which FOC loop was executed.
-  */
-__weak uint8_t TSK_HighFrequencyTask(void)
-{
-  uint8_t bMotorNbr;
-  bMotorNbr = 0;
-  /* USER CODE BEGIN HighFrequencyTask 0 */
-
-  /* USER CODE END HighFrequencyTask 0 */
-  SIX_STEP_HighFrequencyTask(bMotorNbr);
-
-  /* USER CODE BEGIN HighFrequencyTask 1 */
-
-  /* USER CODE END HighFrequencyTask 1 */
-
-  GLOBAL_TIMESTAMP++;
-  if (0U == MCPA_UART_A.Mark)
-  {
-    /* Nothing to do */
-  }
-  else
-  {
-    MCPA_dataLog (&MCPA_UART_A);
-  }
-
-  return (bMotorNbr);
-
-}
-
 /**
   * @brief  Executes safety checks (e.g. bus voltage and temperature) for all drive instances.
   *
@@ -352,8 +290,6 @@ __weak void TSK_SafetyTask(void)
   if (1U == bMCBootCompleted)
   {
     TSK_SafetyTask_PWMOFF(M1);
-    /* User conversion execution */
-    RCM_ExecUserConv();
   /* USER CODE BEGIN TSK_SafetyTask 1 */
 
   /* USER CODE END TSK_SafetyTask 1 */
@@ -380,7 +316,7 @@ __weak void TSK_SafetyTask_PWMOFF(uint8_t bMotor)
   /* Check for fault if FW protection is activated. It returns MC_OVER_TEMP or MC_NO_ERROR */
   if (M1 == bMotor)
   {
-    uint16_t rawValueM1 = RCM_ExecRegularConv(&TempRegConv_M1);
+    uint16_t rawValueM1 = RCM_GetRegularConv(&TempRegConv_M1);
     CodeReturn |= errMask[bMotor] & NTC_CalcAvTemp(&TempSensor_M1, rawValueM1);
   }
   else
@@ -394,7 +330,7 @@ __weak void TSK_SafetyTask_PWMOFF(uint8_t bMotor)
 
   if (M1 == bMotor)
   {
-    uint16_t rawValueM1 =  RCM_ExecRegularConv(&VbusRegConv_M1);
+    uint16_t rawValueM1 =  RCM_GetRegularConv(&VbusRegConv_M1);
     CodeReturn |= errMask[bMotor] & RVBS_CalcAvVbus(&BusVoltageSensor_M1, rawValueM1);
   }
   else
@@ -406,15 +342,8 @@ __weak void TSK_SafetyTask_PWMOFF(uint8_t bMotor)
   if (MCI_GetFaultState(&Mci[bMotor]) != (uint32_t)MC_NO_FAULTS)
   {
     PWMC_SwitchOffPWM(pwmcHandle[bMotor]);
-    if (MCPA_UART_A.Mark != 0U)
-    {
-      MCPA_flushDataLog (&MCPA_UART_A);
-    }
-    else
-    {
-      /* Nothing to do */
-    }
     SIX_STEP_Clear(bMotor);
+
     /* USER CODE BEGIN TSK_SafetyTask_PWMOFF 1 */
 
     /* USER CODE END TSK_SafetyTask_PWMOFF 1 */
@@ -485,4 +414,4 @@ LL_GPIO_LockPin(M1_POTENTIOMETER_GPIO_Port, M1_POTENTIOMETER_Pin);
 
 /* USER CODE END mc_task 0 */
 
-/******************* (C) COPYRIGHT 2024 STMicroelectronics *****END OF FILE****/
+/******************* (C) COPYRIGHT 2026 STMicroelectronics *****END OF FILE****/

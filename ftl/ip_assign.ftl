@@ -21,6 +21,33 @@
   </#if>
 </#if>
 
+<#function GetSpeedSensorInstance motor aux=false> 
+      <#local SENSORS =
+        [ 
+         {"name": "PLL", "val": "STO_PLL"} 
+        , {"name": "CORDIC", "val": "STO_CR"} 
+        , {"name": "ENCODER", "val": "ENCODER"}
+        , {"name": "HALL", "val": "HALL"}
+        , {"name": "HSO", "val": "HSO"}        
+        , {"name": "ZEST", "val": "ZEST"}
+		, {"name": "NULL", "val": "NONE"} 
+		
+        ] >
+      <#if motor == "M1" > 
+        <#if !aux > <#assign entry = MC.M1_SPEED_SENSOR> <#else> 
+        <#assign entry = MC.M1_AUXILIARY_SPEED_SENSOR > </#if>
+      <#else>
+        <#if !aux > <#assign entry = MC.M2_SPEED_SENSOR> <#else> 
+        <#assign entry = MC.M2_AUXILIARY_SPEED_SENSOR > </#if>
+      </#if>
+      <#list SENSORS as sensor >
+        <#if entry?contains(sensor.name) >
+         <#return  sensor.val+'_'+motor >
+        </#if>
+      </#list>
+     <#return 0 >
+</#function>
+
 <#if MC.M1_OVERMODULATION == true><#assign OVM ="_OVM"><#else><#assign OVM =""></#if>
 <#if MC.M2_OVERMODULATION == true><#assign OVM2 ="_OVM"><#else><#assign OVM2 =""></#if>
 
@@ -359,7 +386,7 @@
       <#assign SPD_M2   = "&STO_PLL_M2">
       <#assign SPD_init_M2 = "STO_PLL_Init" >
       <#assign SPD_calcAvrgMecSpeedUnit_M2 = "STO_PLL_CalcAvrgMecSpeedUnit" >
-      <#assign SPD_calcElAngle_M2 = "STO_PLL_CalcElAngle" >   /* if not sensorless then 2nd parameter is MC_NULL*/
+      <#assign SPD_calcElAngle_M2 = "STO_PLL_CalcElAngle" >
       <#assign SPD_calcAvergElSpeedDpp_M2 = "STO_PLL_CalcAvrgElSpeedDpp">
       <#assign SPD_clear_M2 = "STO_PLL_Clear">
     <#elseif  MC.M2_SPEED_SENSOR == "STO_CORDIC">
@@ -431,17 +458,17 @@
 <#if MC.M1_OVERMODULATION == true> <#assign OVM ="_OVM"> <#else> <#assign OVM =""> </#if>
 <#if MC.M2_OVERMODULATION == true> <#assign OVM2 ="_OVM"> <#else>  <#assign OVM2 =""> </#if>
 
-<#if CondFamily_STM32C0 || CondFamily_STM32G0 || CondFamily_STM32F3 || CondFamily_STM32L4 || CondFamily_STM32F0 || CondFamily_STM32G4 || CondFamily_STM32H5>
+<#if CondFamily_STM32C0 || CondFamily_STM32G0 || CondFamily_STM32F3 || CondFamily_STM32L4 || CondFamily_STM32F0 || CondFamily_STM32G4 || CondFamily_STM32H5 || CondFamily_STM32U5>
 <#assign currentFactor = "">
 <#elseif CondFamily_STM32F4 || CondFamily_STM32F7>
 <#assign currentFactor = "*2">
 </#if>
-<#if CondFamily_STM32F3 || CondFamily_STM32L4 || CondFamily_STM32F4 || CondFamily_STM32F7 || CondFamily_STM32G4 || CondFamily_STM32H5>
+<#if CondFamily_STM32F3 || CondFamily_STM32L4 || CondFamily_STM32F4 || CondFamily_STM32F7 || CondFamily_STM32G4 || CondFamily_STM32H5 || CondFamily_STM32U5>
 <#assign HAS_ADC_INJ = true>
 <#else>
 <#assign HAS_ADC_INJ = false>
 </#if>
-<#if CondFamily_STM32F3 || CondFamily_STM32L4 || CondFamily_STM32G0 || CondFamily_STM32F7 || CondFamily_STM32G4 || CondFamily_STM32H5 || CondFamily_STM32C0 >
+<#if CondFamily_STM32F3 || CondFamily_STM32L4 || CondFamily_STM32G0 || CondFamily_STM32F7 || CondFamily_STM32G4 || CondFamily_STM32H5 || CondFamily_STM32C0 || CondFamily_STM32U5>
 <#assign HAS_TIM_6_CH = true>
 <#else><#-- CondFamily_STM32F3 == false && CondFamily_STM32L4 == false && CondFamily_STM32G0 == false
          && CondFamily_STM32F7 == false && CondFamily_STM32G4 && CondFamily_STM32H5 == false && CondFamily_STM32C0 == false -->
@@ -486,6 +513,7 @@
 <#assign AUXTIMFreq = RCC.get("APB1TimFreq_Value")?number>
 <#assign PWMTIMFreq = RCC.get("APB2TimFreq_Value")?number>
 <#assign ADCFreq = RCC.get("APB2Freq_Value")?number>
+<#assign APB1TIM_Freq = RCC.get("APB1TimFreq_Value")?number>
 </#if><#-- CondFamily_STM32F4 || CondFamily_STM32H5-->
 <#if CondFamily_STM32F3>
 <#assign APB1TIM_Freq = RCC.get("APB1TimFreq_Value")?number>
@@ -496,9 +524,6 @@
 <#if CondFamily_STM32C0 >
 <#assign TIM1Freq = RCC.get("APBTimFreq_Value")?number>
 </#if><#-- CondFamily_STM32C0 -->
-<#if CondFamily_STM32G0 >
-<#assign TIM1Freq = RCC.get("TIM1Freq_Value")?number>
-</#if><#-- CondFamily_STM32G0 -->
 
 <#if CondFamily_STM32G4 >
 <#assign APB1Tim_CLKFreq = RCC.get("APB1TimFreq_Value")?number>

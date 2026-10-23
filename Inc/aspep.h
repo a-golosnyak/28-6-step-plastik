@@ -9,7 +9,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2024 STMicroelectronics.
+  * <h2><center>&copy; Copyright (c) 2026 STMicroelectronics.
   * All rights reserved.</center></h2>
   *
   * This software component is licensed by ST under Ultimate Liberty license
@@ -119,10 +119,6 @@ typedef struct
   uint8_t rxHeader[4];                     /*!< Contains the ASPEP 32 bits header */
   ASPEP_ctrlBuff_t ctrlBuffer;             /*!< ASPEP protocol control buffer */
   MCTL_Buff_t syncBuffer;                  /*!< Buffer used for synchronous communication */
-  MCTL_Buff_t asyncBufferA;                /*!< First buffer used for asynchronous communication */
-  MCTL_Buff_t asyncBufferB;                /*!< Second buffer used for asynchronous communication */
-  MCTL_Buff_t *lastRequestedAsyncBuff;     /*!< Last buffer requested for asynchronous communication */
-  MCTL_Buff_t *asyncNextBuffer;            /*!< Next buffer that will be transmitted by asynchronous communication */
   void *lockBuffer;                        /*!< Buffer locked to avoid erasing data not yet transmitted */
   ASPEP_hwinit_cb_t fASPEP_HWInit;         /*!< Pointer to the initialization function */
   ASPEP_hwsync_cb_t fASPEP_HWSync;         /*!< Pointer to the starting function */
@@ -161,4 +157,4 @@ void ASPEP_HWReset(ASPEP_Handle_t *pHandle);
   * @}
   */
 
-/************************ (C) COPYRIGHT 2024 STMicroelectronics *****END OF FILE****/
+/************************ (C) COPYRIGHT 2026 STMicroelectronics *****END OF FILE****/

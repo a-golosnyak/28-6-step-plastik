@@ -6,7 +6,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2024 STMicroelectronics.
+  * <h2><center>&copy; Copyright (c) 2026 STMicroelectronics.
   * All rights reserved.</center></h2>
   *
   * This software component is licensed by ST under Ultimate Liberty license
@@ -31,6 +31,21 @@ extern "C" {
 #endif /* __cplusplus */
 
 /** @addtogroup MCSDK
+  * @{
+  */
+
+/** @addtogroup COMMON_MC
+  * @{
+  */
+
+/** @addtogroup COMMON_MCLIB
+  * @{
+  */
+
+/**
+  * @defgroup COMMON_MCLIB Common Motor Control Lib
+  * @brief
+  *
   * @{
   */
 
@@ -233,7 +248,8 @@ typedef enum
                                   * Only relevant when HSO is used.
                                   */
   MCM_POSITION_MODE,            /**< @brief Closed loop, sensored position control mode. */
-  MCM_MODE_NUM                  /**< @brief Number of modes in enum. */
+  MCM_MODE_NUM,                  /**< @brief Number of modes in enum. */
+  MCM_DUTY_MODE                  /**< @brief Open loop, 6-step.*/
 } MC_ControlMode_t;
 
 /**
@@ -279,10 +295,6 @@ typedef struct
                                   *
                                   * @note This field does not exists if HSO is used.
                                   */
-  qd_t IqdHF;                   /**< @brief Stator current on stator reference frame alfa-beta.
-                                  *
-                                  * @note This field does not exists if HSO is used.
-                                  */
   qd_t Iqd;                     /**< @brief Stator current on rotor reference frame qd.
                                   *
                                   * @note This field does not exists if HSO is used.
@@ -311,6 +323,7 @@ typedef struct
                                   *
                                   * @note This field does not exists if HSO is used.
                                   */
+
   uint16_t hCodeError;          /**< @brief Error Code.
                                   *
                                   * @note This field does not exists if HSO is used.
@@ -329,9 +342,6 @@ typedef struct
 {
   uint16_t DutyCycleRef;        /**< @brief Reference speed. */
   uint16_t hCodeError;          /**< @brief error message. */
-  CurrRefSource_t bDriveInput;  /**< @brief It specifies whether the current reference source must be
-                                 *          #INTERNAL or #EXTERNAL. */
-  int16_t qElAngle;
 } SixStepVars_t, *pSixStepVars_t;
 
 /**
@@ -431,5 +441,5 @@ typedef enum
 #endif /* __cpluplus */
 
 #endif /* MC_TYPE_H */
-/******************* (C) COPYRIGHT 2024 STMicroelectronics *****END OF FILE****/
+/******************* (C) COPYRIGHT 2026 STMicroelectronics *****END OF FILE****/
 

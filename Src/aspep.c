@@ -9,7 +9,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2024 STMicroelectronics.
+  * <h2><center>&copy; Copyright (c) 2026 STMicroelectronics.
   * All rights reserved.</center></h2>
   *
   * This software component is licensed by ST under Ultimate Liberty license
@@ -309,35 +309,7 @@ bool ASPEP_getBuffer(MCTL_Handle_t *pSupHandle, void **buffer,  uint8_t syncAsyn
     }
     else /* Asynchronous buffer request */
     {
-      if ((pHandle->asyncBufferA.state > writeLock) && (pHandle->asyncBufferB.state > writeLock))
-      {
-        result = false;
-      }
-      else
-      {
-        if (pHandle->asyncBufferA.state <= writeLock)
-        {
-          pHandle->asyncBufferA.state = writeLock;
-          pHandle->lastRequestedAsyncBuff = &pHandle->asyncBufferA;
-          *buffer = &pHandle->asyncBufferA.buffer[ASPEP_HEADER_SIZE];
-#ifdef MCP_DEBUG_METRICS
-          pHandle->asyncBufferA.RequestedNumber++;
-#endif
-        }
-        else if (pHandle->asyncBufferB.state <= writeLock)
-        {
-          pHandle->asyncBufferB.state = writeLock;
-          pHandle->lastRequestedAsyncBuff = &pHandle->asyncBufferB;
-          *buffer = &pHandle->asyncBufferB.buffer[ASPEP_HEADER_SIZE];
-#ifdef MCP_DEBUG_METRICS
-          pHandle->asyncBufferB.RequestedNumber++;
-#endif
-        }
-        else
-        {
-          /* Nothing to do */
-        }
-      }
+     result = false; /* Async packets are not supported */
     }
 #ifdef NULL_PTR_CHECK_ASP
   }
@@ -492,16 +464,7 @@ uint8_t ASPEP_TXframeProcess(ASPEP_Handle_t *pHandle, uint8_t dataType, void *tx
     __disable_irq(); /*TODO: Disable High frequency task is enough */
     if (NULL == pHandle->lockBuffer) /* Communication Ip free to send data*/
     {
-      if (MCTL_ASYNC == dataType)
-      {
-        /* In ASYNC, two flipflop buffers are used, the txBuffer points always to lastRequestedAsyncBuff->buffer */
-        pHandle->lastRequestedAsyncBuff->state = readLock;
-        pHandle->lockBuffer = (void *)pHandle->lastRequestedAsyncBuff;
-#ifdef MCP_DEBUG_METRICS
-        pHandle->lastRequestedAsyncBuff->SentNumber++;
-#endif
-      }
-      else if (MCTL_SYNC == dataType)
+      if (MCTL_SYNC == dataType)
       {
         pHandle->syncBuffer.state = readLock;
         pHandle->lockBuffer = (void *)&pHandle->syncBuffer;
@@ -519,33 +482,7 @@ uint8_t ASPEP_TXframeProcess(ASPEP_Handle_t *pHandle, uint8_t dataType, void *tx
     {
       __enable_irq(); /*TODO: Enable High frequency task is enough */
       /* Lock buffer can be freed here */
-      if (MCTL_ASYNC == dataType)
-      {
-        /* Check that the buffer received is the one expected - probably useless */
-        if (txBuffer != (uint8_t *)pHandle->lastRequestedAsyncBuff->buffer)
-        {
-          result = ASPEP_BUFFER_ERROR;
-        }
-        else
-        {
-          /* Nothing to do */
-        }
-        if (NULL == pHandle->asyncNextBuffer)
-        {
-          /* Required to keep the right sending order */
-          pHandle->asyncNextBuffer = pHandle->lastRequestedAsyncBuff;
-        }
-        else
-        {
-          /* Nothing to do */
-        }
-        pHandle->lastRequestedAsyncBuff->state = pending;
-        pHandle->lastRequestedAsyncBuff->length = bufferLength;
-#ifdef MCP_DEBUG_METRICS
-        pHandle->lastRequestedAsyncBuff->PendingNumber++;
-#endif
-      }
-      else if (MCTL_SYNC == dataType)
+      if (MCTL_SYNC == dataType)
       {
         if (pHandle -> syncBuffer.state != writeLock)
         {
@@ -622,33 +559,7 @@ void ASPEP_HWDataTransmittedIT(ASPEP_Handle_t *pHandle)
     }
     else
     {
-      __disable_irq();
-      if (pHandle->asyncNextBuffer != NULL)
-      {
-        pHandle->lockBuffer = (void *)pHandle->asyncNextBuffer;
-        pHandle->asyncNextBuffer->state = readLock;
-#ifdef MCP_DEBUG_METRICS
-        pHandle->asyncNextBuffer->SentNumber++;
-#endif
-        pHandle->fASPEP_cfg_trans(pHandle->ASPEPIp, pHandle->asyncNextBuffer->buffer, pHandle->asyncNextBuffer->length);
-        /* If one Async buffer is still pending, assign it to the asyncNextBuffer pointer*/
-        if ((pHandle->asyncBufferA.state == pending) || (pHandle->asyncBufferB.state == pending))
-        {
-          //cstat !MISRAC2012-Rule-11.4
-          uint32_t temp = (uint32_t)&pHandle->asyncBufferA + (uint32_t)&pHandle->asyncBufferB
-                          - (uint32_t) pHandle->asyncNextBuffer; //cstat !MISRAC2012-Rule-11.4
-          pHandle->asyncNextBuffer = (MCTL_Buff_t *) temp; //cstat !MISRAC2012-Rule-11.4
-        }
-        else
-        {
-          pHandle->asyncNextBuffer = NULL;
-        }
-      }
-      else /* No TX packet are pending, HW resource is free*/
-      {
-        pHandle->lockBuffer = NULL;
-      }
-      __enable_irq();
+      pHandle->lockBuffer = NULL;
     }
 #ifdef NULL_PTR_CHECK_ASP
   }
@@ -949,4 +860,4 @@ void ASPEP_HWReset(ASPEP_Handle_t *pHandle)
   * @}
   */
 
-/************************ (C) COPYRIGHT 2024 STMicroelectronics *****END OF FILE****/
+/************************ (C) COPYRIGHT 2026 STMicroelectronics *****END OF FILE****/

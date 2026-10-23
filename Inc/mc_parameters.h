@@ -9,7 +9,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2024 STMicroelectronics.
+  * <h2><center>&copy; Copyright (c) 2026 STMicroelectronics.
   * All rights reserved.</center></h2>
   *
   * This software component is licensed by ST under Ultimate Liberty license
@@ -24,7 +24,6 @@
 
 #include "mc_interface.h"
 #include "pwmc_sixstep.h"
-#include "g4xx_bemf_ADC_fdbk.h"
 
 /* USER CODE BEGIN Additional include */
 
@@ -32,11 +31,10 @@
 
 extern const PWMC_Params_t PWMC_ParamsM1;
 extern PWMC_TimerCfg_t SixPwm_TimerCfgM1;
-extern const Bemf_ADC_Params_t Bemf_ADC_ParamsM1;
 extern ScaleParams_t scaleParams_M1;
 /* USER CODE BEGIN Additional extern */
 
 /* USER CODE END Additional extern */
 
 #endif /* MC_PARAMETERS_H */
-/******************* (C) COPYRIGHT 2024 STMicroelectronics *****END OF FILE****/
+/******************* (C) COPYRIGHT 2026 STMicroelectronics *****END OF FILE****/

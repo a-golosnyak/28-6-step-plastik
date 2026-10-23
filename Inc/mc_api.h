@@ -7,7 +7,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2024 STMicroelectronics.
+  * <h2><center>&copy; Copyright (c) 2026 STMicroelectronics.
   * All rights reserved.</center></h2>
   *
   * This software component is licensed by ST under Ultimate Liberty license
@@ -16,7 +16,7 @@
   *                             www.st.com/SLA0044
   *
   ******************************************************************************
-  * @ingroup MCIAPI
+  * @ingroup  MCIAPI
   */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
@@ -34,11 +34,14 @@
   * @{
   */
 
-/** @addtogroup CAI
+/** @addtogroup COMMON_MC
   * @{
   */
 
-/** @addtogroup MCIAPI
+/**
+  * @defgroup COMMON_MC Common Motor Control
+  * @brief
+  *
   * @{
   */
 
@@ -50,9 +53,6 @@ bool MC_StopMotor1(void);
 
 /* Programs a Speed ramp for Motor 1 */
 void MC_ProgramSpeedRampMotor1(int16_t hFinalSpeed, uint16_t hDurationms);
-
-/* Returns the current PWM duty cycle reference for Motor 1 */
-int16_t MCI_GetDutyCycleRefMotor1(void);
 
 /* Returns the state of the last submited command for Motor 1 */
 MCI_CommandState_t MC_GetCommandStateMotor1(void);
@@ -125,4 +125,4 @@ uint8_t MC_ProfilerCommand (uint16_t rxLength, uint8_t *rxBuffer, int16_t txSync
 #endif /* __cpluplus */
 
 #endif /* MC_API_H */
-/******************* (C) COPYRIGHT 2024 STMicroelectronics *****END OF FILE****/
+/******************* (C) COPYRIGHT 2026 STMicroelectronics *****END OF FILE****/

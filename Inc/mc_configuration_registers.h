@@ -9,7 +9,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2024 STMicroelectronics.
+  * <h2><center>&copy; Copyright (c) 2026 STMicroelectronics.
   * All rights reserved.</center></h2>
   *
   * This software component is licensed by ST under Ultimate Liberty license
@@ -67,6 +67,7 @@ typedef struct
   uint32_t PWMFrequency;
   uint16_t MediumFrequency;
   uint16_t configurationFlag1;
+  uint16_t configurationFlag2;
   uint8_t driveMode;
 } __attribute__ ((packed)) SixStepFwConfig_reg_t;
 
@@ -79,8 +80,8 @@ typedef struct
 #define EZEST                     6
 
 #define SDK_VERSION_MAIN   (0x6) /*!< [31:24] main version */
-#define SDK_VERSION_SUB1   (0x3) /*!< [23:16] sub1 version */
-#define SDK_VERSION_SUB2   (0x0) /*!< [15:8]  sub2 version */
+#define SDK_VERSION_SUB1   (0x4) /*!< [23:16] sub1 version */
+#define SDK_VERSION_SUB2   (0x2) /*!< [15:8]  sub2 version */
 #define SDK_VERSION_RC     (0x0) /*!< [7:0]  release candidate */
 #define SDK_VERSION               ((SDK_VERSION_MAIN << 24U)\
                                   |(SDK_VERSION_SUB1 << 16U)\
@@ -105,11 +106,14 @@ typedef struct
 #define OTF_STARTUP_FLAG          (1U << 15U)
 
 /* configurationFlag2 definition */
-#define OVERMODULATION_FLAG       (1U)
-#define DISCONTINUOUS_PWM_FLAG    (1U << 1U)
-#define PROFILER_FLAG             (1U << 13U)
-#define DBG_MCU_LOAD_MEASURE_FLAG (1U << 14U)
-#define DBG_OPEN_LOOP_FLAG        (1U << 15U)
+#define OVERMODULATION_FLAG            (1U)
+#define DISCONTINUOUS_PWM_FLAG         (1U << 1U)
+#define QUASI_SYNC_FLAG                (1U << 10U)
+#define IPD_STARTUP_FLAG               (1U << 11U)
+#define CURRENT_MONITOR_READING_FLAG   (1U << 12U)
+#define PROFILER_FLAG                  (1U << 13U)
+#define DBG_MCU_LOAD_MEASURE_FLAG      (1U << 14U)
+#define DBG_OPEN_LOOP_FLAG             (1U << 15U)
 
 /* MCP_Flag definition */
 #define FLAG_MCP_OVER_STLINK       0U
@@ -117,15 +121,13 @@ typedef struct
 #define FLAG_MCP_OVER_UARTB        0U
 
 #define configurationFlag1_M1     (VBUS_SENSING_FLAG|TEMP_SENSING_FLAG)
-#define configurationFlag2_M1     (0U)
+#define configurationFlag2_M1     (QUASI_SYNC_FLAG)
 
 #define DRIVE_TYPE_M1              1
 
 #define PRIM_SENSOR_M1            0
-#define AUX_SENSOR_M1             ENO_SENSOR
+#define AUX_SENSOR_M1             0
 #define TOPOLOGY_M1               0
-#define FOC_RATE_M1               2
-#define PWM_FREQ_M1               30006
 
 extern const char_t FIRMWARE_NAME[]; //cstat !MISRAC2012-Rule-18.8 !MISRAC2012-Rule-8.11
 extern const char_t CTL_BOARD[]; //cstat !MISRAC2012-Rule-18.8 !MISRAC2012-Rule-8.11
@@ -137,4 +139,4 @@ extern const MotorConfig_reg_t *MotorConfig_reg[NBR_OF_MOTORS];
 extern const ApplicationConfig_reg_t *ApplicationConfig_reg[NBR_OF_MOTORS];
 
 #endif /* MC_CONFIGURATION_REGISTERS_H */
-/************************ (C) COPYRIGHT 2024 STMicroelectronics *****END OF FILE****/
+/************************ (C) COPYRIGHT 2026 STMicroelectronics *****END OF FILE****/

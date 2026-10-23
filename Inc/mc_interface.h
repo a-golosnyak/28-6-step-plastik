@@ -8,7 +8,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2024 STMicroelectronics.
+  * <h2><center>&copy; Copyright (c) 2026 STMicroelectronics.
   * All rights reserved.</center></h2>
   *
   * This software component is licensed by ST under Ultimate Liberty license
@@ -31,12 +31,20 @@ extern "C" {
 /* Includes ------------------------------------------------------------------*/
 #include "mc_type.h"
 #include "pwmc_sixstep.h"
-#include "speed_ctrl.h"
+#include "speed_duty_ctrl.h"
 /** @addtogroup MCSDK
   * @{
   */
 
-/** @addtogroup CAI
+  /** @addtogroup ConvFOC
+  * @{
+  */
+
+/** @addtogroup	MCCockpit
+  * @{
+  */
+
+/** @addtogroup	MCCtrlAPI
   * @{
   */
 
@@ -110,8 +118,10 @@ typedef enum
                           * case it goes back to the #FAULT_NOW state) or the application
                           * acknowledges the faults (in which case it goes to the #IDLE state).
                           */
-  WAIT_STOP_MOTOR = 20  /**< Temporisation to make sure the motor is stopped. */
-
+  WAIT_STOP_MOTOR = 20,  /**< Temporisation to make sure the motor is stopped. */
+  OTF_DETECTION = 21,  /**< Temporisation to make sure the motor is stopped. */
+  OTF_BRAKE = 22,  /**< Temporisation to make sure the motor is stopped. */
+  STATE_ENUM_COUNT = 23  /* Max Statte count of enum */
 } MCI_State_t;
 
 /**
@@ -125,29 +135,29 @@ typedef enum
   MCI_MEASURE_OFFSETS,  /**< Start the ADCs Offset measurements procedure */
   /* Shouldn't we remove this command ? */
   MCI_ALIGN_ENCODER,    /**< Start the Encoder alignment procedure */
-  MCI_STOP              /**< Stop the Motor and the control */
+  MCI_STOP,              /**< Stop the Motor and the control */
 } MCI_DirectCommands_t;
 
 typedef struct
 {
-  SpeednTorqCtrl_Handle_t *pSTC;         /*!< Speed and torque controller object used by MCI.*/
-  pSixStepVars_t pSixStepVars;           /*!< Pointer to FOC vars used by MCI.*/
-  PWMC_Handle_t *pPWM;                   /*!< Pointer to PWM handle structure.*/
-  MCI_UserCommands_t lastCommand;        /*!< Last command coming from the user.*/
-  int16_t hFinalSpeed;                   /*!< Final speed of last ExecSpeedRamp command.*/
-  int16_t hFinalTorque;                  /*!< Final torque of last ExecTorqueRamp command.*/
-  ScaleParams_t *pScale;
-  uint16_t hDurationms;                  /*!< Duration in ms of last ExecSpeedRamp or ExecTorqueRamp command.*/
  MCI_DirectCommands_t DirectCommand;
  MCI_State_t State;
  uint16_t CurrentFaults;
  uint16_t PastFaults;
  MCI_CommandState_t CommandState;        /*!< The status of the buffered command.*/
+ MCI_UserCommands_t lastCommand;        /*!< Last command coming from the user.*/
  MC_ControlMode_t LastModalitySetByUser; /*!< The last MC_ControlMode_t set by the user. */
+ PWMC_Handle_t *pPWM;                   /*!< Pointer to PWM handle structure.*/
+ ScaleParams_t *pScale;
+ int16_t hFinalSpeed;                   /*!< Final speed of last ExecSpeedRamp command.*/
+ int16_t hFinalTorque;                  /*!< Final torque of last ExecTorqueRamp command.*/
+ uint16_t hDurationms;                  /*!< Duration in ms of last ExecSpeedRamp or ExecTorqueRamp command.*/
+  SpeednDutyCtrl_Handle_t *pSDC;         /*!< Speed and duty controller object used by MCI.*/
+  pSixStepVars_t pSixStepVars;           /*!< Pointer to 6step vars used by MCI.*/
 } MCI_Handle_t;
 
 /* Exported functions ------------------------------------------------------- */
-void MCI_Init(MCI_Handle_t *pHandle, SpeednTorqCtrl_Handle_t *pSTC, pSixStepVars_t pSixStepVars,
+void MCI_Init(MCI_Handle_t *pHandle, SpeednDutyCtrl_Handle_t *pSDC, pSixStepVars_t pSixStepVars,
               PWMC_Handle_t *pPWMHandle);
 void MCI_ExecBufferedCommands(MCI_Handle_t *pHandle );
 void MCI_ExecSpeedRamp(MCI_Handle_t *pHandle,  int16_t hFinalSpeed, uint16_t hDurationms);
@@ -172,10 +182,9 @@ bool MCI_RampCompleted(MCI_Handle_t *pHandle);
 float_t MCI_GetLastRampFinalSpeed_F(MCI_Handle_t *pHandle);
 bool MCI_StopSpeedRamp(MCI_Handle_t *pHandle);
 void MCI_StopRamp(MCI_Handle_t *pHandle);
-bool MCI_GetSpdSensorReliability(MCI_Handle_t *pHandle);
+bool MCI_GetSpdSensorReliability(const MCI_Handle_t *pHandle);
 int16_t MCI_GetAvrgMecSpeedUnit(MCI_Handle_t *pHandle);
 int16_t MCI_GetMecSpeedRefUnit(MCI_Handle_t *pHandle);
-uint16_t MCI_GetDutyCycleRef(MCI_Handle_t *pHandle);
 /**
   * @}
   */
@@ -194,5 +203,5 @@ uint16_t MCI_GetDutyCycleRef(MCI_Handle_t *pHandle);
 
 #endif /* MC_INTERFACE_H */
 
-/******************* (C) COPYRIGHT 2024 STMicroelectronics *****END OF FILE****/
+/******************* (C) COPYRIGHT 2026 STMicroelectronics *****END OF FILE****/
 

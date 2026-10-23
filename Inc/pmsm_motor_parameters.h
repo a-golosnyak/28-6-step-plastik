@@ -8,7 +8,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2024 STMicroelectronics.
+  * <h2><center>&copy; Copyright (c) 2026 STMicroelectronics.
   * All rights reserved.</center></h2>
   *
   * This software component is licensed by ST under Ultimate Liberty license
@@ -30,7 +30,7 @@
 /***************** MOTOR ELECTRICAL PARAMETERS  ******************************/
 #define POLE_PAIR_NUM           6 /* Number of motor pole pairs */
 #define RS                      0.1 /* Stator resistance , ohm*/
-#define LS                      0.000024 /* Stator inductance, H
+#define LS                      0.000017 /* Stator inductance, H
                                                  For I-PMSM it is equal to Lq */
 
 /* When using Id = 0, NOMINAL_CURRENT is utilized to saturate the output of the
@@ -41,8 +41,8 @@
                                    *Amplifying network gain)/(MCU supply voltage/2)
 */
 
-#define MOTOR_MAX_SPEED_RPM     10002 /*!< Maximum rated speed  */
 #define MOTOR_VOLTAGE_CONSTANT  0.5 /*!< Volts RMS ph-ph /kRPM */
+#define MOTOR_MAX_SPEED_RPM     15804 /*!< Maximum rated speed  */
 #define NOMINAL_CURRENT_A       2.160
 
 /***************** MOTOR SENSORS PARAMETERS  ******************************/
@@ -62,4 +62,4 @@
                                                  signal H1 and the maximum of
                                                  the Bemf induced on phase A */
 #endif /* PMSM_MOTOR_PARAMETERS_H */
-/******************* (C) COPYRIGHT 2024 STMicroelectronics *****END OF FILE****/
+/******************* (C) COPYRIGHT 2026 STMicroelectronics *****END OF FILE****/

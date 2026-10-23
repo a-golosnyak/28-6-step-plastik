@@ -9,7 +9,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2024 STMicroelectronics.
+  * <h2><center>&copy; Copyright (c) 2026 STMicroelectronics.
   * All rights reserved.</center></h2>
   *
   * This software component is licensed by ST under Ultimate Liberty license
@@ -52,50 +52,60 @@
 
 /* USER CODE END PRIVATE */
 
-void PERIOD_COMM_IRQHandler(void);
 void BEMF_READING_IRQHandler(void);
-void TIMx_UP_M1_IRQHandler(void);
+void PERIOD_COMM_IRQHandler(void);
 void TIMx_BRK_M1_IRQHandler(void);
 
 /**
-  * @brief  This function handles BEMF sensing interrupt request.
+  * @brief  This function handles BEMF sensing interrupt request from ADC1 and ADC2.
   * @param[in] None
   */
-void BEMF_READING_IRQHandler(void)
+void BEMF_ADC1_2_READING_IRQHandler(void)
 {
   /* USER CODE BEGIN CURRENT_REGULATION_IRQn 0 */
 
   /* USER CODE END CURRENT_REGULATION_IRQn 0 */
 
-  if(LL_ADC_IsActiveFlag_AWD1(ADC1) && LL_ADC_IsEnabledIT_AWD1(ADC1))
+  if (LL_ADC_IsActiveFlag_AWD1(ADC1) != 0U)
   {
-    /* Clear Flags */
-    LL_ADC_ClearFlag_AWD1(ADC1);
-    BADC_IsZcDetected(&Bemf_ADC_M1, PWM_Handle_M1.Step);
+    if (LL_ADC_IsEnabledIT_AWD1(ADC1) != 0U)
+    {
+      /* Clear Flags. */
+      LL_ADC_ClearFlag_AWD1(ADC1);
+      BADC_IsZcDetected(&Bemf_ADC_M1, PWM_Handle_M1.Step);
+    }
+    else
+    {
+      /* Nothing to do. */
+    }
   }
   else
   {
-    /* Nothing to do */
+    /* Nothing to do. */
   }
 
-  if(LL_ADC_IsActiveFlag_AWD1(ADC2) && LL_ADC_IsEnabledIT_AWD1(ADC2))
+  if (LL_ADC_IsActiveFlag_AWD1(ADC2) != 0U)
   {
-    /* Clear Flags */
-    LL_ADC_ClearFlag_AWD1(ADC2);
-    BADC_IsZcDetected(&Bemf_ADC_M1, PWM_Handle_M1.Step);
+    if (LL_ADC_IsEnabledIT_AWD1(ADC2) != 0U)
+    {
+      /* Clear Flags. */
+      LL_ADC_ClearFlag_AWD1(ADC2);
+      BADC_IsZcDetected(&Bemf_ADC_M1, PWM_Handle_M1.Step);
+    }
+    else
+    {
+      /* Nothing to do. */
+    }
   }
   else
   {
-    /* Nothing to do */
+    /* Nothing to do. */
   }
 
   /* USER CODE BEGIN CURRENT_REGULATION_IRQn 1 */
 
   /* USER CODE END CURRENT_REGULATION_IRQn 1 */
 
-  /* USER CODE BEGIN CURRENT_REGULATION_IRQn 2 */
-
-  /* USER CODE END CURRENT_REGULATION_IRQn 2 */
 }
 
 /**
@@ -104,82 +114,58 @@ void BEMF_READING_IRQHandler(void)
   */
 void PERIOD_COMM_IRQHandler(void)
 {
-  /* TIM Update event */
+  /* TIM Capture compare 1 event. */
 
-  if(LL_TIM_IsActiveFlag_CC1(Bemf_ADC_M1.pParams_str->LfTim) && LL_TIM_IsEnabledIT_CC1(Bemf_ADC_M1.pParams_str->LfTim))
+  if (LL_TIM_IsActiveFlag_CC1(TIM2) != 0U)
   {
-    LL_TIM_ClearFlag_CC1(Bemf_ADC_M1.pParams_str->LfTim);
-    if ((Bemf_ADC_M1.SpeedTimerState == COMMUTATION) && (true == Bemf_ADC_M1.IsLoopClosed))
+    if (LL_TIM_IsEnabledIT_CC1(TIM2) != 0U)
     {
-      BADC_StepChangeEvent(&Bemf_ADC_M1, 0);
-      SixStep_StepCommution();
+      LL_TIM_ClearFlag_CC1(TIM2);
+      TSK_SpeedTIM_task();
     }
-    else if (Bemf_ADC_M1.SpeedTimerState == DEMAGNETIZATION)
+    else
     {
-      PWMC_SetADCTriggerChannel( &PWM_Handle_M1, *Bemf_ADC_M1.pSensing_Point);
-      BADC_Start(&Bemf_ADC_M1, PWM_Handle_M1.Step, PWM_Handle_M1.LSModArray);
-      Bemf_ADC_M1.SpeedTimerState = COMMUTATION;
+      /* Nothing to do. */
     }
   }
   else
   {
-    /* Nothing to do */
+    /* Nothing to do. */
   }
+
 }
 
-#if defined (CCMRAM)
-#if defined (__ICCARM__)
-#pragma location = ".ccmram"
-#elif defined (__CC_ARM) || defined(__GNUC__)
-__attribute__((section (".ccmram")))
-#endif
-#endif
 /**
-  * @brief  This function handles first motor TIMx Update interrupt request.
+  * @brief  This function handles TIMx break-in interrupt request.
   * @param  None
   */
-void TIMx_UP_M1_IRQHandler(void)
-{
- /* USER CODE BEGIN TIMx_UP_M1_IRQn 0 */
-
- /* USER CODE END  TIMx_UP_M1_IRQn 0 */
-
-  LL_TIM_ClearFlag_UPDATE(TIM1);
-  (void)TSK_HighFrequencyTask();
-
- /* USER CODE BEGIN TIMx_UP_M1_IRQn 1 */
-
- /* USER CODE END  TIMx_UP_M1_IRQn 1 */
-}
-
 void TIMx_BRK_M1_IRQHandler(void)
 {
   /* USER CODE BEGIN TIMx_BRK_M1_IRQn 0 */
 
   /* USER CODE END TIMx_BRK_M1_IRQn 0 */
 
-  if (0U == LL_TIM_IsActiveFlag_BRK(TIM1))
-  {
-    /* Nothing to do */
-  }
-  else
+  if (LL_TIM_IsActiveFlag_BRK(TIM1) != 0U)
   {
     LL_TIM_ClearFlag_BRK(TIM1);
-    PWMC_BRK_IRQHandler(&PWM_Handle_M1);
-  }
-
-  if (0U == LL_TIM_IsActiveFlag_BRK2(TIM1))
-  {
-    /* Nothing to do */
+    (void)PWMC_BRK_IRQHandler(&PWM_Handle_M1);
   }
   else
   {
-    LL_TIM_ClearFlag_BRK2(TIM1);
-    PWMC_BRK_IRQHandler(&PWM_Handle_M1);
-
+    /* Nothing to do. */
   }
 
-  /* Systick is not executed due low priority so is necessary to call MC_Scheduler here */
+  if (LL_TIM_IsActiveFlag_BRK2(TIM1) != 0U)
+  {
+    LL_TIM_ClearFlag_BRK2(TIM1);
+    (void)PWMC_BRK_IRQHandler(&PWM_Handle_M1);
+  }
+  else
+  {
+    /* Nothing to do. */
+  }
+
+  /* Systick is not executed due low priority so is necessary to call MC_Scheduler here. */
   MC_RunMotorControlTasks();
 
   /* USER CODE BEGIN TIMx_BRK_M1_IRQn 1 */
@@ -198,4 +184,4 @@ void TIMx_BRK_M1_IRQHandler(void)
 /**
   * @}
   */
-/******************* (C) COPYRIGHT 2024 STMicroelectronics *****END OF FILE****/
+/******************* (C) COPYRIGHT 2026 STMicroelectronics *****END OF FILE****/

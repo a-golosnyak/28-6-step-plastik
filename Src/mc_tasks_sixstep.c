@@ -1,14 +1,14 @@
 
 /**
   ******************************************************************************
-  * @file    mc_tasks.c
+  * @file    mc_tasks_sixstep.c
   * @author  Motor Control SDK Team, ST Microelectronics
   * @brief   This file implements tasks definition
   *
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2024 STMicroelectronics.
+  * <h2><center>&copy; Copyright (c) 2026 STMicroelectronics.
   * All rights reserved.</center></h2>
   *
   * This software component is licensed by ST under Ultimate Liberty license
@@ -17,6 +17,7 @@
   *                             www.st.com/SLA0044
   *
   ******************************************************************************
+  * @ingroup MCTasksSixStep
   */
 
 /* Includes ------------------------------------------------------------------*/
@@ -34,6 +35,43 @@
 #include "mcp_config.h"
 #include "mc_app_hooks.h"
 
+/** @addtogroup MCSDK
+  * @{
+  */
+
+/** @addtogroup SixStep
+  * @{
+  */
+
+/** @addtogroup	MCCockpitSixStep
+  * @{
+  */
+
+  /** @defgroup MCCockpitSixStep MC Cockpit
+  *
+  * @brief
+  *
+  * @{
+  */
+
+/** @addtogroup	MCTasksSixStep
+  * @{
+  */
+
+    /** @defgroup MCTasksSixStep Motor Control Tasks
+  *
+  * @brief  	Motor Control subsystem configuration and operation routines for SixStep applications.
+  *
+  * @{
+  */
+
+/** @defgroup MCTasksSixStep Motor Control Tasks for Six Step algorithm
+  *
+  * @brief SixStep Motor Control subsystem configuration and operation routines.
+  *
+  * @{
+  */
+
 /* USER CODE BEGIN Includes */
 
 /* USER CODE END Includes */
@@ -44,16 +82,16 @@
 /* USER CODE END Private define */
 
 /* Private variables----------------------------------------------------------*/
-static volatile uint16_t hBootCapDelayCounterM1 = ((uint16_t)0);
+static volatile uint16_t hBootCapDelayCounterM1   = ((uint16_t)0);
 static volatile uint16_t hStopPermanencyCounterM1 = ((uint16_t)0);
 
-#define M1_CHARGE_BOOT_CAP_TICKS          (((uint16_t)SYS_TICK_FREQUENCY * (uint16_t)10) / 1000U)
+#define M1_CHARGE_BOOT_CAP_TICKS       (((uint16_t)SYS_TICK_FREQUENCY * (uint16_t)10) / 1000U)
 #define M1_CHARGE_BOOT_CAP_DUTY_CYCLES ((uint32_t)0.000\
-                                      * ((uint32_t)PWM_PERIOD_CYCLES / 2U))
-#define M2_CHARGE_BOOT_CAP_TICKS         (((uint16_t)SYS_TICK_FREQUENCY * (uint16_t)10) / 1000U)
+                                     * ((uint32_t)PWM_PERIOD_CYCLES / 2U))
+#define M2_CHARGE_BOOT_CAP_TICKS       (((uint16_t)SYS_TICK_FREQUENCY * (uint16_t)10) / 1000U)
 #define M2_CHARGE_BOOT_CAP_DUTY_CYCLES ((uint32_t)0\
-                                      * ((uint32_t)PWM_PERIOD_CYCLES2 / 2U))
-#define S16_90_PHASE_SHIFT             (int16_t)(65536/4)
+                                      *((uint32_t)PWM_PERIOD_CYCLES2 / 2U))
+#define SPEED_TIMER_IDLE_RATE_TICKS    (uint32_t) (REGULAR_CONVERSION_RATE_MS * APB1TIM_FREQ / (1000U * (LF_TIMER_PSC + 1U)))
 
 /* USER CODE BEGIN Private Variables */
 
@@ -63,8 +101,7 @@ static volatile uint16_t hStopPermanencyCounterM1 = ((uint16_t)0);
 void TSK_MediumFrequencyTaskM1(void);
 void TSK_MF_StopProcessing(uint8_t motor);
 MCI_Handle_t *GetMCI(uint8_t bMotor);
-void SixStep_InitAdditionalMethods(uint8_t bMotor);
-void SixStep_CalcSpeedRef(uint8_t bMotor);
+static void SixStep_StepCommution(void);
 
 /* USER CODE BEGIN Private Functions */
 
@@ -72,11 +109,9 @@ void SixStep_CalcSpeedRef(uint8_t bMotor);
 /**
   * @brief  It initializes the whole MC core according to user defined
   *         parameters.
-  * @param  pMCIList pointer to the vector of MCInterface objects that will be
-  *         created and initialized. The vector must have length equal to the
-  *         number of motor drives.
+  * @param  None
   */
-__weak void SIX_STEP_Init( void )
+__weak void SIX_STEP_Init(void)
 {
   /* USER CODE BEGIN MCboot 0 */
 
@@ -100,21 +135,14 @@ __weak void SIX_STEP_Init( void )
     /******************************************************/
     /*   Main speed sensor component initialization       */
     /******************************************************/
-    BADC_Init (&Bemf_ADC_M1);
+    BADC_Init(&Bemf_ADC_M1);
 
     /******************************************************/
-    /*   Speed & torque component initialization          */
+    /*   Speed & duty cycle component initialization          */
     /******************************************************/
-    STC_Init(pSTC[M1],&PIDSpeedHandle_M1, &Bemf_ADC_M1._Super);
-
-    /**************************************/
-    /*   Rev-up component initialization  */
-    /**************************************/
-    RUC_Init(&RevUpControlM1,pSTC[M1],&VirtualSpeedSensorM1);
     SIX_STEP_Clear(M1);
-
     MCI_ExecSpeedRamp(&Mci[M1],
-    STC_GetMecSpeedRefUnitDefault(pSTC[M1]),0); /* First command to STC */
+    SDC_GetMecSpeedRefUnitDefault(pSDC[M1]),0); /* First command to SDC */
 
     /* USER CODE BEGIN MCboot 2 */
 
@@ -142,13 +170,11 @@ void TSK_MF_StopProcessing(uint8_t motor)
   */
 __weak void TSK_MediumFrequencyTaskM1(void)
 {
-
   /* USER CODE BEGIN MediumFrequencyTask M1 0 */
 
   /* USER CODE END MediumFrequencyTask M1 0 */
 
-  int16_t wAux = 0;
-  bool IsSpeedReliable = BADC_CalcAvrgMecSpeedUnit(&Bemf_ADC_M1, &wAux);
+  bool IsSpeedReliable = BADC_CalcAvrgMecSpeedUnit(&Bemf_ADC_M1);
 
   if (MCI_GetCurrentFaults(&Mci[M1]) == MC_NO_FAULTS)
   {
@@ -156,20 +182,19 @@ __weak void TSK_MediumFrequencyTaskM1(void)
     {
       switch (Mci[M1].State)
       {
+
         case IDLE:
         {
-          if ((MCI_START == Mci[M1].DirectCommand) || (MCI_MEASURE_OFFSETS == Mci[M1].DirectCommand))
+          if (MCI_START == Mci[M1].DirectCommand)
           {
-              RUC_Clear(&RevUpControlM1, MCI_GetImposedMotorDirection(&Mci[M1]));
-              RUC_UpdatePulse(&RevUpControlM1, &BusVoltageSensor_M1._Super);
-
-              PWMC_TurnOnLowSides(pwmcHandle[M1],M1_CHARGE_BOOT_CAP_DUTY_CYCLES);
-              TSK_SetChargeBootCapDelayM1(M1_CHARGE_BOOT_CAP_TICKS);
-              Mci[M1].State = CHARGE_BOOT_CAP;
+            RUC_6S_UpdatePulse(&RevUpControlM1, &BusVoltageSensor_M1._Super);
+            PWMC_TurnOnLowSides(pwmcHandle[M1],M1_CHARGE_BOOT_CAP_DUTY_CYCLES);
+            TSK_SetChargeBootCapDelayM1(M1_CHARGE_BOOT_CAP_TICKS);
+            Mci[M1].State = CHARGE_BOOT_CAP;
           }
           else
           {
-            /* Nothing to be done, FW stays in IDLE state */
+            /* Nothing to be done, FW stays in IDLE state. */
           }
           break;
         }
@@ -185,17 +210,11 @@ __weak void TSK_MediumFrequencyTaskM1(void)
             if (TSK_ChargeBootCapDelayHasElapsedM1())
             {
               PWMC_SwitchOffPWM(pwmcHandle[M1]);
-              SixStepVars[M1].bDriveInput = EXTERNAL;
-              STC_SetSpeedSensor( pSTC[M1], &VirtualSpeedSensorM1._Super );
-              BADC_Clear(&Bemf_ADC_M1);
-              SIX_STEP_Clear( M1 );
-              BADC_SetDirection(&Bemf_ADC_M1, MCI_GetImposedMotorDirection( &Mci[M1]));
-              BADC_SetSamplingPoint(&Bemf_ADC_M1, &PWM_Handle_M1, &BusVoltageSensor_M1._Super);
+              BADC_SetDirection(&Bemf_ADC_M1, (int8_t)MCI_GetImposedMotorDirection(&Mci[M1]));
+              SIX_STEP_Clear(M1);
 
               Mci[M1].State = START;
-              BADC_Start(&Bemf_ADC_M1, PWM_Handle_M1.Step, PWM_Handle_M1.LSModArray);
               PWMC_SwitchOnPWM(pwmcHandle[M1]);
-
             }
             else
             {
@@ -204,7 +223,6 @@ __weak void TSK_MediumFrequencyTaskM1(void)
           }
           break;
         }
-
         case START:
         {
           if (MCI_STOP == Mci[M1].DirectCommand)
@@ -213,98 +231,56 @@ __weak void TSK_MediumFrequencyTaskM1(void)
           }
           else
           {
-            bool ObserverConverged;
-              /* Mechanical speed as imposed by the Virtual Speed Sensor during the Rev Up phase. */
-              int16_t hForcedMecSpeedUnit;
-              /* Execute the Rev Up procedure */
-              if(! RUC_Exec(&RevUpControlM1))
+              /* Execute the IPD procedure. */
+              /* Execute the Rev Up procedure. */
+              if(! RUC_6S_Exec(&RevUpControlM1))
               {
                 /* The time allowed for the startup sequence has expired */
                 MCI_FaultProcessing(&Mci[M1], MC_START_UP, 0);
               }
               else
               {
-                /* Execute the torque open loop current start-up ramp:
-                 * Compute the Iq reference current as configured in the Rev Up sequence */
-                (void) BADC_CalcRevUpDemagTime (&Bemf_ADC_M1);
-                SixStepVars[M1].DutyCycleRef = STC_CalcSpeedReference( pSTC[M1] );
-              }
-
-              (void)VSS_CalcAvrgMecSpeedUnit(&VirtualSpeedSensorM1, &hForcedMecSpeedUnit);
-
-              /* Check that startup stage where the observer has to be used has been reached */
-              if (true == RUC_FirstAccelerationStageReached(&RevUpControlM1))
-              {
-                ObserverConverged = BADC_IsObserverConverged( &Bemf_ADC_M1);
-                (void)VSS_SetStartTransition(&VirtualSpeedSensorM1, ObserverConverged);
-              }
-              else
-              {
-                ObserverConverged = false;
-              }
-            if (ObserverConverged)
-            {
-              Mci[M1].State = SWITCH_OVER;
-            }
-          }
-          break;
-        }
-
-        case SWITCH_OVER:
-        {
-          if (MCI_STOP == Mci[M1].DirectCommand)
-          {
-            TSK_MF_StopProcessing(M1);
-          }
-          else
-          {
-              bool LoopClosed;
-              int16_t hForcedMecSpeedUnit;
-
-              if (! RUC_Exec(&RevUpControlM1))
-              {
-                /* The time allowed for the startup sequence has expired */
-                MCI_FaultProcessing(&Mci[M1], MC_START_UP, 0);
-              }
-              else
-              {
-                /* Compute the virtual speed and positions of the rotor.
-                   The function returns true if the virtual speed is in the reliability range */
-                LoopClosed = VSS_CalcAvrgMecSpeedUnit(&VirtualSpeedSensorM1, &hForcedMecSpeedUnit);
-
-                /* Check if the transition ramp has completed. */
-                bool tempBool;
-                tempBool = VSS_TransitionEnded(&VirtualSpeedSensorM1);
-                LoopClosed = LoopClosed || tempBool;
-
-                /* If any of the above conditions is true, the loop is considered closed.
-                   The state machine transitions to the RUN state */
-                if (true ==  LoopClosed)
+              /* Rotor alignment */
+                if (true == RUC_6S_IsAlignStageNow(&RevUpControlM1))
                 {
-#if PID_SPEED_INTEGRAL_INIT_DIV == 0
-                    PID_SetIntegralTerm(&PIDSpeedHandle_M1, 0);
-#else
-                    PID_SetIntegralTerm(&PIDSpeedHandle_M1,
-                                        (((int32_t)SixStepVars[M1].DutyCycleRef * (int16_t)PID_GetKIDivisor(&PIDSpeedHandle_M1))
-                                      / PID_SPEED_INTEGRAL_INIT_DIV));
-#endif
-                    /* USER CODE BEGIN MediumFrequencyTask M1 1 */
-
-                    /* USER CODE END MediumFrequencyTask M1 1 */
-
-                    STC_SetSpeedSensor(pSTC[M1], &Bemf_ADC_M1._Super); /* Observer has converged */
-                    SixStep_InitAdditionalMethods(M1);
-                    SixStep_CalcSpeedRef(M1);
-                    BADC_SetLoopClosed(&Bemf_ADC_M1);
-                    PWMC_DisableHighFreqTask( &PWM_Handle_M1 );
-                    STC_ForceSpeedReferenceToCurrentSpeed(pSTC[M1]); /* Init the reference speed to current speed */
-                    MCI_ExecBufferedCommands(&Mci[M1]); /* Exec the speed ramp after changing of the speed sensor */
-                    Mci[M1].State = RUN;
+                  PWMC_SetPhaseVoltage(pwmcHandle[M1], SixStepVars[M1].DutyCycleRef);
+                  PWMC_LoadNextStep(&PWM_Handle_M1);
                 }
                 else
                 {
-                  /* Nothint to do, Loop not closed */
+                  /* Nothing to do */
                 }
+
+                /* Execute the open loop start-up ramp:
+                 * Compute the duty cycle reference as configured in the Rev Up sequence */
+                (void) BADC_CalcRevUpDemagTime (&Bemf_ADC_M1, SPD_GetAvrgMecSpeedUnit(&RevUpControlM1._Super));
+                SixStepVars[M1].DutyCycleRef = SDC_CalcSpeedReference(pSDC[M1]);
+              }
+
+              /* Check that startup speed has reached the validation threshold*/
+              if (true == RUC_6S_ObserverSpeedReached(&RevUpControlM1))
+              {
+#if PID_SPEED_INTEGRAL_INIT_DIV == 0
+                PID_SetIntegralTerm(&PIDSpeedHandle_M1, 0);
+#else
+                PID_SetIntegralTerm(&PIDSpeedHandle_M1,
+                                    (((int32_t)SixStepVars[M1].DutyCycleRef * (int16_t)PID_GetKIDivisor(&PIDSpeedHandle_M1))
+                                     / PID_SPEED_INTEGRAL_INIT_DIV));
+#endif
+                /* USER CODE BEGIN MediumFrequencyTask M1 1 */
+
+                /* USER CODE END MediumFrequencyTask M1 1 */
+
+                SixStepVars[M1].DutyCycleRef = SDC_CalcSpeedReference(pSDC[M1]);
+                BADC_SetLoopClosed(&Bemf_ADC_M1);
+                SDC_SetSpeedSensor(pSDC[M1], &Bemf_ADC_M1._Super);
+                SDC_ForceSpeedReferenceToCurrentSpeed(pSDC[M1]); /* Init the reference speed to current speed */
+                MCI_ExecBufferedCommands(&Mci[M1]); /* Exec the speed ramp after changing of the speed sensor */
+                Mci[M1].State = RUN;
+              }
+              else
+              {
+                /* Nothing to do */
               }
           }
           break;
@@ -322,12 +298,13 @@ __weak void TSK_MediumFrequencyTaskM1(void)
 
             /* USER CODE END MediumFrequencyTask M1 2 */
 
-            MCI_ExecBufferedCommands(&Mci[M1]);
-
-              SixStep_CalcSpeedRef(M1);
-            BADC_SetSamplingPoint(&Bemf_ADC_M1, &PWM_Handle_M1, &BusVoltageSensor_M1._Super);
+            MCI_ExecBufferedCommands(&Mci[M1]); /* Exec the speed ramp after changing of the speed sensor */
+            SixStepVars[M1].DutyCycleRef = SDC_CalcSpeedReference(pSDC[M1]);
+            /* Update PWM at this Medium frequency rate after compution to allow a better start at low speed. */
+            PWMC_SetPhaseVoltage(pwmcHandle[M1], SixStepVars[M1].DutyCycleRef);
 
             (void) BADC_CalcRunDemagTime (&Bemf_ADC_M1);
+
             if(!IsSpeedReliable)
             {
               MCI_FaultProcessing(&Mci[M1], MC_SPEED_FDBK, 0);
@@ -344,10 +321,7 @@ __weak void TSK_MediumFrequencyTaskM1(void)
         {
           if (TSK_StopPermanencyTimeHasElapsedM1())
           {
-            STC_SetSpeedSensor(pSTC[M1], &VirtualSpeedSensorM1._Super);    /* Sensor-less */
-            VSS_Clear(&VirtualSpeedSensorM1); /* Reset measured speed in IDLE */
             BADC_Clear(&Bemf_ADC_M1);
-
             /* USER CODE BEGIN MediumFrequencyTask M1 5 */
 
             /* USER CODE END MediumFrequencyTask M1 5 */
@@ -395,6 +369,7 @@ __weak void TSK_MediumFrequencyTaskM1(void)
   {
     Mci[M1].State = FAULT_NOW;
   }
+
   /* USER CODE BEGIN MediumFrequencyTask M1 6 */
 
   /* USER CODE END MediumFrequencyTask M1 6 */
@@ -413,129 +388,97 @@ __weak void SIX_STEP_Clear(uint8_t bMotor)
   /* USER CODE BEGIN SixStep_Clear 0 */
 
   /* USER CODE END SixStep_Clear 0 */
-  SixStepVars[M1].bDriveInput = EXTERNAL;
-  STC_Clear(pSTC[bMotor]);
-  SixStepVars[bMotor].DutyCycleRef = STC_GetDutyCycleRef(pSTC[bMotor]);
-  BADC_Stop( &Bemf_ADC_M1 );
-  BADC_SpeedMeasureOff(&Bemf_ADC_M1); /* Stop timer before BADC_Clear to avoid ADC regular conversion issues.*/
-  BADC_Clear( &Bemf_ADC_M1 );
+  SDC_Clear(pSDC[bMotor]);
+  SixStepVars[bMotor].DutyCycleRef = SDC_GetDutyCycleRef(pSDC[bMotor]);
+  BADC_Stop();
+  BADC_Clear(&Bemf_ADC_M1);
   PWMC_SwitchOffPWM(pwmcHandle[bMotor]);
+  RUC_6S_Clear(&RevUpControlM1, MCI_GetImposedMotorDirection(&Mci[M1]));
+  SDC_SetSpeedSensor(pSDC[M1], &RevUpControlM1._Super);
+  Bemf_ADC_M1.SpeedTimerState = LFTIM_IDLE;
 
   /* USER CODE BEGIN SixStep_Clear 1 */
 
   /* USER CODE END SixStep_Clear 1 */
 }
 
-/**
-  * @brief  Use this method to initialize additional methods (if any) in
-  *         START_TO_RUN state.
-  * @param  bMotor related motor it can be M1 or M2.
-  */
-__weak void SixStep_InitAdditionalMethods(uint8_t bMotor)
-{
-  /* USER CODE BEGIN FOC_InitAdditionalMethods 0 */
-
-  /* USER CODE END FOC_InitAdditionalMethods 0 */
-}
+#if defined (CCMRAM)
+#if defined (__ICCARM__)
+#pragma location = ".ccmram"
+#elif defined (__CC_ARM) || defined(__GNUC__)
+__attribute__((section (".ccmram")))
+#endif
+#endif
 
 /**
-  * @brief  It computes the new values of Iqdref (current references on qd
-  *         reference frame) based on the required electrical torque information
-  *         provided by oTSC object (internally clocked).
-  *         If implemented in the derived class it executes flux weakening and/or
-  *         MTPA algorithm(s). It must be called with the periodicity specified
-  *         in oTSC parameters.
-  * @param  bMotor related motor it can be M1 or M2.
+  * @brief  This is the 6step commutation task. It configures the demagnetization period and
+  * manages ADC regular conversions when motor is both running and stopped.
   */
-__weak void SixStep_CalcSpeedRef(uint8_t bMotor)
+
+__weak void TSK_SpeedTIM_task()
 {
 
-  /* USER CODE BEGIN FOC_CalcCurrRef 0 */
+  /* USER CODE BEGIN SpeedTimerTask 0 */
 
-  /* USER CODE END FOC_CalcCurrRef 0 */
-  if(SixStepVars[bMotor].bDriveInput == INTERNAL)
+  /* USER CODE END SpeedTimerTask 0 */
+
+  if (true == BADC_CheckDetectionErrors(&Bemf_ADC_M1))
   {
-    SixStepVars[bMotor].DutyCycleRef = STC_CalcSpeedReference(pSTC[bMotor]);
+    MCI_FaultProcessing(&Mci[M1], MC_SPEED_FDBK, 0);
   }
   else
   {
     /* Nothing to do */
   }
-  /* USER CODE BEGIN FOC_CalcCurrRef 1 */
 
-  /* USER CODE END FOC_CalcCurrRef 1 */
-}
-
-#if defined (CCMRAM)
-#if defined (__ICCARM__)
-#pragma location = ".ccmram"
-#elif defined (__CC_ARM) || defined(__GNUC__)
-__attribute__((section (".ccmram")))
-#endif
-#endif
-
-/**
-  * @brief  Executes the Motor Control duties that require a high frequency rate and a precise timing.
-  *
-  *  This is mainly the FOC current control loop. It is executed depending on the state of the Motor Control
-  * subsystem (see the state machine(s)).
-  *
-  * @retval Number of the  motor instance which FOC loop was executed.
-  */
-__weak uint8_t SIX_STEP_HighFrequencyTask(uint8_t bMotorNbr)
-{
-
- /* USER CODE BEGIN HighFrequencyTask 0 */
-
-  /* USER CODE END HighFrequencyTask 0 */
-
-  uint16_t hSixStepReturn;
-  if(RUN != Mci[M1].State) /*  only for sensor-less*/
+  switch (Bemf_ADC_M1.SpeedTimerState)
   {
-    if (START == Mci[M1].State)
+    case LFTIM_COMMUTATION:
     {
-      if (0U == RUC_IsAlignStageNow(&RevUpControlM1))
+      BADC_StepChangeEvent(&Bemf_ADC_M1);
+      (void)SixStep_StepCommution();
+      RCM_ExecNextConv();
+      BADC_SetSamplingPoint(&Bemf_ADC_M1, &PWM_Handle_M1, &BusVoltageSensor_M1._Super);
+      PWMC_SetADCTriggerChannel(&PWM_Handle_M1, *Bemf_ADC_M1.pSensing_Point);
+      break;
+    }
+
+    case LFTIM_DEMAGNETIZATION:
+    {
+      RCM_ReadOngoingConv();
+      if (false == Bemf_ADC_M1.IsLoopClosed)
       {
-        PWMC_SetAlignFlag(&PWM_Handle_M1, 0);
+        BADC_SetSpeedTimer(&Bemf_ADC_M1, RevUpControlM1.ElSpeedTimerDpp - Bemf_ADC_M1.DemagCounterThreshold);
       }
       else
       {
-        PWMC_SetAlignFlag(&PWM_Handle_M1, RUC_GetDirection(&RevUpControlM1));
+        /* Nothing to do, step commutation is scheduled only when bemf zero crossing is detected */
       }
+      BADC_Start(&Bemf_ADC_M1, PWM_Handle_M1.Step, PWM_Handle_M1.LSModArray);
+      Bemf_ADC_M1.SpeedTimerState = LFTIM_COMMUTATION;
+      break;
     }
-    else
+
+    case LFTIM_IDLE:
+    default:
     {
-      PWMC_SetAlignFlag(&PWM_Handle_M1, 0);
+      RCM_ExecNextConv();
+      RCM_WaitForConv();
+      RCM_ReadOngoingConv();
+      BADC_SetSpeedTimer(&Bemf_ADC_M1, SPEED_TIMER_IDLE_RATE_TICKS);
+      if (false == RUC_6S_IsAlignStageNow(&RevUpControlM1))
+      {
+       Bemf_ADC_M1.SpeedTimerState = LFTIM_COMMUTATION;
+      }
+      else
+      {}
+      break;
     }
-    int16_t hObsAngle = SPD_GetElAngle(&VirtualSpeedSensorM1._Super);
-    (void)VSS_CalcElAngle(&VirtualSpeedSensorM1, &hObsAngle);
-  }
-  (void)BADC_CalcElAngle (&Bemf_ADC_M1);
-  /* USER CODE BEGIN HighFrequencyTask SINGLEDRIVE_1 */
-
-  /* USER CODE END HighFrequencyTask SINGLEDRIVE_1 */
-  hSixStepReturn = SixStep_StepCommution();
-  /* USER CODE BEGIN HighFrequencyTask SINGLEDRIVE_2 */
-
-  /* USER CODE END HighFrequencyTask SINGLEDRIVE_2 */
-
-  if(MC_DURATION == hSixStepReturn)
-  {
-    MCI_FaultProcessing(&Mci[bMotorNbr], MC_DURATION, 0);
-  }
-  else
-  {
-    /* USER CODE BEGIN HighFrequencyTask SINGLEDRIVE_3 */
-
-    /* USER CODE END HighFrequencyTask SINGLEDRIVE_3 */
   }
 
-  /* USER CODE BEGIN HighFrequencyTask 1 */
+  /* USER CODE BEGIN SpeedTimerTask 1 */
 
-  /* USER CODE END HighFrequencyTask 1 */
-
-  return (bMotorNbr);
-
+  /* USER CODE END SpeedTimerTask 1 */
 }
 
 #if defined (CCMRAM)
@@ -545,55 +488,15 @@ __weak uint8_t SIX_STEP_HighFrequencyTask(uint8_t bMotorNbr)
 __attribute__((section (".ccmram")))
 #endif
 #endif
-inline uint16_t SixStep_StepCommution(void)
+inline void SixStep_StepCommution(void)
 {
-  uint16_t hCodeError = MC_NO_ERROR;
-  int16_t hElAngle, hSpeed, hDirection;
-  SpeednPosFdbk_Handle_t *speedHandle;
-  RCM_ReadOngoingConv();
-  RCM_ExecNextConv();
-  hDirection = RUC_GetDirection(&RevUpControlM1);
-  PWMC_SetPhaseVoltage( pwmcHandle[M1], SixStepVars[M1].DutyCycleRef );
-  if  (false == Bemf_ADC_M1.IsLoopClosed)
-  {
-    speedHandle = STC_GetSpeedSensor(pSTC[M1]);
-    if(false == BADC_IsObserverConverged(&Bemf_ADC_M1))
-    {
-      hElAngle = SPD_GetElAngle(speedHandle);
-    }
-    else
-    {
-      hElAngle = SPD_GetElAngle(&Bemf_ADC_M1._Super);
-    }
-    hSpeed = SPD_GetElSpeedDpp(speedHandle);
-
-    if (hDirection > 0)
-    {
-      SixStepVars[M1].qElAngle = hElAngle + S16_90_PHASE_SHIFT;
-    }
-    else
-    {
-      SixStepVars[M1].qElAngle = hElAngle - S16_90_PHASE_SHIFT;
-    }
-    PWM_Handle_M1.hElAngle = SixStepVars[M1].qElAngle;
-    if (PWMC_ElAngleToStep(&PWM_Handle_M1))
-    {
-      PWMC_LoadNextStep( &PWM_Handle_M1 );
-      BADC_StepChangeEvent(&Bemf_ADC_M1, hSpeed);
-    }
-  }
-  else
-  {
-    PWMC_ForceNextStep( &PWM_Handle_M1, hDirection );
-    PWMC_LoadNextStep( &PWM_Handle_M1 );
-  }
-  return(hCodeError);
+  PWMC_SetPhaseVoltage(pwmcHandle[M1], SixStepVars[M1].DutyCycleRef);
+  PWMC_ForceNextStep(&PWM_Handle_M1, RUC_6S_GetDirection(&RevUpControlM1), 0u);
+  PWMC_LoadNextStep(&PWM_Handle_M1);
 }
-
-/* Puts parameters for onsensing PWM configuration */
 
 /* USER CODE BEGIN mc_task 0 */
 
 /* USER CODE END mc_task 0 */
 
-/******************* (C) COPYRIGHT 2024 STMicroelectronics *****END OF FILE****/
+/******************* (C) COPYRIGHT 2026 STMicroelectronics *****END OF FILE****/

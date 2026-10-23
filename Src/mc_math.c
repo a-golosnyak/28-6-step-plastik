@@ -9,7 +9,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2024 STMicroelectronics.
+  * <h2><center>&copy; Copyright (c) 2026 STMicroelectronics.
   * All rights reserved.</center></h2>
   *
   * This software component is licensed by ST under Ultimate Liberty license
@@ -18,12 +18,25 @@
   *                             www.st.com/SLA0044
   *
   ******************************************************************************
+  * @ingroup MC_Math
   */
 /* Includes ------------------------------------------------------------------*/
 #include "mc_math.h"
 #include "mc_type.h"
 
 /** @addtogroup MCSDK
+  * @{
+  */
+
+  /** @addtogroup ConvFOC
+  * @{
+  */
+
+/** @addtogroup	MCCockpit
+  * @{
+  */
+
+  /** @addtogroup	MCCtrlAPI
   * @{
   */
 
@@ -154,4 +167,4 @@ __weak uint32_t MCM_floatToIntBit( float_t x ) //cstat !MISRAC2012-Dir-4.6_a
   * @}
   */
 
-/******************* (C) COPYRIGHT 2024 STMicroelectronics *****END OF FILE****/
+/******************* (C) COPYRIGHT 2026 STMicroelectronics *****END OF FILE****/

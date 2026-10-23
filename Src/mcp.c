@@ -9,7 +9,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2024 STMicroelectronics.
+  * <h2><center>&copy; Copyright (c) 2026 STMicroelectronics.
   * All rights reserved.</center></h2>
   *
   * This software component is licensed by ST under Ultimate Liberty license
@@ -30,6 +30,10 @@
 /** @addtogroup MCSDK
   * @{
   */
+
+ /** @addtogroup MCUI
+   * @{
+   */
 
 /** @defgroup MCP Motor Control Protocol
   *
@@ -300,6 +304,13 @@ void MCP_ReceivedPacket(MCP_Handle_t *pHandle)
         break;
       }
 
+      case SW_RESET:
+      {
+        HAL_NVIC_SystemReset();
+        MCPResponse = MCP_CMD_OK;
+        break;
+      }
+
       case STOP_RAMP:
       {
         if (RUN == MCI_GetSTMState(pMCI))
@@ -403,4 +414,4 @@ uint8_t MCP_RegisterCallBack (uint8_t callBackID, MCP_user_cb_t fctCB)
   * @}
   */
 
-/******************* (C) COPYRIGHT 2024 STMicroelectronics *****END OF FILE****/
+/******************* (C) COPYRIGHT 2026 STMicroelectronics *****END OF FILE****/

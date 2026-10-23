@@ -8,7 +8,7 @@
   ******************************************************************************
   * @attention
   *
-  * <h2><center>&copy; Copyright (c) 2024 STMicroelectronics.
+  * <h2><center>&copy; Copyright (c) 2026 STMicroelectronics.
   * All rights reserved.</center></h2>
   *
   * This software component is licensed by ST under Ultimate Liberty license
@@ -31,7 +31,7 @@
   * @{
   */
 
-/** @addtogroup MCTasks
+/** @addtogroup COMMON_MC
   * @{
   */
 
@@ -67,9 +67,8 @@ __weak void MC_APP_BootHook(void)
  */
 __weak void MC_APP_PostMediumFrequencyHook_M1(void)
 {
-
-  uint16_t rawValue = RCM_ExecRegularConv(&PotRegConv_M1);
-  SPDPOT_Run(&SpeedPotentiometer_M1, rawValue);
+  uint16_t rawValue = RCM_GetRegularConv(&PotRegConv_M1);
+  (void)SPDPOT_Run(&SpeedPotentiometer_M1, rawValue);
 
 /* USER SECTION BEGIN PostMediumFrequencyHookM1 */
 
@@ -82,4 +81,4 @@ __weak void MC_APP_PostMediumFrequencyHook_M1(void)
 
 /** @} */
 
-/************************ (C) COPYRIGHT 2024 STMicroelectronics *****END OF FILE****/
+/************************ (C) COPYRIGHT 2026 STMicroelectronics *****END OF FILE****/
